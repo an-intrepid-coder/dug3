@@ -44,6 +44,7 @@ class Actor {
 Actor Player(int y, int x);
 Actor Slime(int y, int x);
 Actor Bugbear(int y, int x);
+Actor Troll(int y, int x);
 
 #endif
 

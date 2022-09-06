@@ -99,3 +99,7 @@ Actor Bugbear(int y, int x) {
   return Actor(false, 'B', y, x, 8, SEEKING_HUNTER, "Bugbear");
 }
 
+Actor Troll(int y, int x) {
+  return Actor(false, 'T', y, x, 12, WAITING_HUNTER, "Troll");
+}
+

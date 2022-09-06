@@ -14,6 +14,12 @@
 using std::vector;
 using std::string;
 
+typedef enum {
+  UNEXPLORED,
+  EXPLORED,
+  VISIBLE
+} Visibility;
+
 // Integrated early game object for now. No separate scene stuff yet.
 
 class Game {
@@ -34,18 +40,22 @@ class Game {
     // Map stuff
     bool terrain_map_generated;
     vector<vector<Terrain>> terrain_map;
+    vector<vector<Visibility>> fov_map;
     bool distance_map_generated;
     // TODO: Distance map display is debug only
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
-
+    
     Terrain get_terrain(int y, int x);
+    Visibility get_fov(int y, int x);
     Coord get_spawn_loc();
     void run_behavior();
     Actor* get_player();
     void clear_dead();
     void dijkstra_map_distance(Coord start);
     Coord downhill_from(Coord coord);
+    bool can_see(Actor* viewer, Coord goal);
+    void calculate_fov();
 };
 
 #endif

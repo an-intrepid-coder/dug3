@@ -4,7 +4,8 @@
 typedef enum {
   NO_BEHAVIOR,
   OBLIVIOUS_WANDERER,
-  SEEKING_HUNTER
+  SEEKING_HUNTER,
+  WAITING_HUNTER
 } Behavior;
 
 

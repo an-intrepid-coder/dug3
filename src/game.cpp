@@ -22,6 +22,13 @@ Game::Game() {
   this->displaying_distance_map = false;
   this->generate_test_map();
   this->terrain_map_generated = true;
+  this->fov_map = vector<vector<Visibility>>();
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    this->fov_map.push_back(vector<Visibility>());
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      this->fov_map[y].push_back(UNEXPLORED);
+    }
+  }
 
   this->actors = vector<Actor>();
   Coord spawn = this->get_spawn_loc();
@@ -30,8 +37,39 @@ Game::Game() {
   this->actors.push_back(Slime(spawn2.y, spawn2.x));
   Coord spawn3 = this->get_spawn_loc();
   this->actors.push_back(Bugbear(spawn3.y, spawn3.x));
+  Coord spawn4 = this->get_spawn_loc();
+  this->actors.push_back(Troll(spawn4.y, spawn4.x));
 
   this->dijkstra_map_distance(spawn);
+  this->calculate_fov();
+}
+
+Visibility Game::get_fov(int y, int x) {
+  return this->fov_map[y][x];
+}
+
+void Game::calculate_fov() { // TODO: Args
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      Visibility vis = this->fov_map[y][x];
+      if (vis == VISIBLE) {
+        this->fov_map[y][x] = EXPLORED;
+      }
+    }
+  }
+
+  Actor* player = this->get_player();
+  Coord player_loc = Coord{player->get_y(), player->get_x()};
+  for (auto y = player_loc.y - VISION_RADIUS; y <= player_loc.y + VISION_RADIUS; y++) {
+    for (auto x = player_loc.x - VISION_RADIUS; x <= player_loc.x + VISION_RADIUS; x++) {
+      if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
+        Coord coord = Coord{y, x};
+        if (can_see(player, coord)) {
+          this->fov_map[y][x] = VISIBLE;
+        }
+      }
+    }
+  }
 }
 
 bool Game::toggle_displaying_distance_map() {
@@ -90,22 +128,32 @@ void Game::clear_dead() {
 
 // Returns true if the Actor was able to move:
 bool Game::move_actor(Actor* actor, int dy, int dx) {
+  Coord actor_loc = Coord{actor->get_y(), actor->get_x()};
   int ty = actor->get_y() + dy;
   int tx = actor->get_x() + dx;
   Terrain terrain = this->get_terrain(ty, tx);
   // Check for actors and initiate combat if needed:
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor2 = &this->actors[i];
-    if (actor2->get_y() == ty && actor2->get_x() == tx && actor != actor2) {
+    Coord actor2_loc = Coord{actor2->get_y(), actor2->get_x()};
+    if (actor2_loc.y == ty && 
+        actor2_loc.x == tx && 
+        (actor->get_is_player() || actor2->get_is_player()) &&
+        // NOTE: ^ For now, enemies don't attack each other. Will add a
+        //       toggle for that soon (confused enemies, berserkers, etc.).
+        actor != actor2) {
       // TODO: Advanced combat -- all dmg is 1 for now
       int dmg = 1;
       actor2->change_health(-dmg);
-      string dmg_log = actor->get_name() + 
-                       " hits " + actor2->get_name() + 
-                       " for " + to_string(dmg) + 
-                       " dmg! (" + to_string(actor2->get_health()) + 
-                       "/" + to_string(actor2->get_max_health()) + ")";
-      this->log.push_back(dmg_log);
+      Actor* player = this->get_player();
+      if (can_see(player, actor_loc) && can_see(player, actor2_loc)) {
+        string dmg_log = actor->get_name() + 
+                         " hits " + actor2->get_name() + 
+                         " for " + to_string(dmg) + 
+                         " dmg! (" + to_string(actor2->get_health()) + 
+                         "/" + to_string(actor2->get_max_health()) + ")";
+        this->log.push_back(dmg_log);
+      }
       return true;
     }
   }
@@ -162,10 +210,17 @@ bool Game::handle_input() {
       return this->move_actor(player, 0, 0);
       break;
     case 'D':
-      // Overlay Djikstra distance:
+      // Overlay Djikstra distance: (Debug cmd!)
       this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
       this->toggle_displaying_distance_map();
       break;
+    case 'R':
+      // Reveal the map. (Debug cmd!)
+      for (auto y = 0; y < MAP_HEIGHT; y++) {
+        for (auto x = 0; x < MAP_WIDTH; x++) {
+          this->fov_map[y][x] = VISIBLE;
+        }
+      }
     default:
       break;
   }
@@ -173,9 +228,8 @@ bool Game::handle_input() {
 }
 
 void Game::game_loop() {
-  while (this->get_player()->is_alive()) {
+  for (;;) {
     Actor* player = this->get_player();
-    player->change_movement_points(1);
 
     this->display_scene();
 
@@ -186,11 +240,16 @@ void Game::game_loop() {
       turn_taken = true;
     }
     if (turn_taken) { 
+      player->change_movement_points(1);
       this->run_behavior();
+      if (!player->is_alive()) {
+        break;
+      }
       this->clear_dead();
       this->turn++;
       Coord coord = Coord{player->get_y(), player->get_x()};
       this->dijkstra_map_distance(coord);
+      this->calculate_fov();
     }
     
     // About 30 FPS
@@ -214,38 +273,58 @@ void Game::display_scene() {
   // Display tiles: (FOV TODO)
   for (auto y = 0; y < MAP_HEIGHT; y++) {
     for (auto x = 0; x < MAP_WIDTH; x++) {
-      Terrain terrain = this->get_terrain(y, x);
-      switch (terrain) {
-        case NO_TERRAIN:
-          mvaddch(y, x, ' ');
-          break;
-        case WALL:
-          mvaddch(y, x, '#');
-          break;
-        case FLOOR:
-          if (this->displaying_distance_map) { 
-            char d = 'a' + this->distance_map[y][x];
-            mvaddch(y, x, d);
-          } else {
-            mvaddch(y, x, '.');
-          }
-          break;
-      } 
+      Visibility vis = this->get_fov(y, x);
+      if (vis == UNEXPLORED) {
+        mvaddch(y, x, ' ');
+      } else {
+        if (vis == EXPLORED) {
+          attron(COLOR_PAIR(BLUE_ON_BLACK));
+        } else if (vis == VISIBLE) {
+          attron(COLOR_PAIR(WHITE_ON_BLACK));
+        }
+        Terrain terrain = this->get_terrain(y, x);
+        switch (terrain) {
+          case NO_TERRAIN:
+            mvaddch(y, x, ' ');
+            break;
+          case WALL:
+            mvaddch(y, x, '#');
+            break;
+          case FLOOR:
+            if (this->displaying_distance_map) { 
+              char d = 'a' + this->distance_map[y][x];
+              mvaddch(y, x, d);
+            } else {
+              mvaddch(y, x, '.');
+            }
+            break;
+        }
+        if (vis == EXPLORED) {
+          attroff(COLOR_PAIR(BLUE_ON_BLACK));
+        }
+      }
     }
   }
 
   // Display Actors: (FOV TODO)
+  Actor* player = this->get_player();
+  //Coord player_loc = Coord{player->get_y(), player->get_x()};
   for (auto actor : this->actors) {
-    mvaddch(actor.get_y(), actor.get_x(), actor.get_symbol());
+    Coord coord = Coord{actor.get_y(), actor.get_x()};
+    if (can_see(player, coord)) {
+      mvaddch(actor.get_y(), actor.get_x(), actor.get_symbol());
+    }
   }
 
   // HUD stuff:
-  Actor* player = this->get_player();
   std::string loc_str = "Loc: (" + to_string(player->get_y()) + ", " + to_string(player->get_x()) + ")";
   mvaddstr(0, MAP_WIDTH, loc_str.c_str());
   
   std::string turn_str = "Turn: " + to_string(this->turn);
   mvaddstr(1, MAP_WIDTH, turn_str.c_str());
+
+  std::string mp_str = "MP: " + to_string(player->get_movement_points());
+  mvaddstr(2, MAP_WIDTH, mp_str.c_str());
 
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {
@@ -277,8 +356,12 @@ void Game::generate_test_map() {
 void Game::run_behavior() {
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor = &this->actors[i];
+    if (actor->get_behavior() == NO_BEHAVIOR) {
+      continue;
+    }
     actor->change_movement_points(1);
     if (actor->get_movement_points() == 1) {
+      Actor* player = this->get_player();
       Behavior behavior = actor->get_behavior();
       if (behavior == OBLIVIOUS_WANDERER) {
         // Wander in a random direction, with no regard for the
@@ -300,6 +383,15 @@ void Game::run_behavior() {
         int dy = dest.y - actor->get_y();
         int dx = dest.x - actor->get_x();
         this->move_actor(actor, dy, dx);
+      } else if (behavior == WAITING_HUNTER) {
+        Coord player_loc = Coord{player->get_y(), player->get_x()};
+        if (can_see(actor, player_loc)) {
+          Coord coord = Coord{actor->get_y(), actor->get_x()};
+          Coord dest = this->downhill_from(coord);
+          int dy = dest.y - actor->get_y();
+          int dx = dest.x - actor->get_x();
+          this->move_actor(actor, dy, dx);
+        }
       }
       // TODO: Other behavior types
     }
@@ -326,11 +418,29 @@ Coord Game::downhill_from(Coord coord) {
   }
   int j = (int) (this->rng() % vec3.size());
   Coord dest = vec3[j];
+  if (vec3.empty()) {
+    return coord;
+  }
   return dest;
 }
 
+bool Game::can_see(Actor* viewer, Coord goal) {
+  Coord start = Coord{viewer->get_y(), viewer->get_x()};
+  if (get_chebyshev_distance(start, goal) > VISION_RADIUS) {
+  // TODO: ^ actor modifier
+    return false;
+  }
+  vector<Coord> sight_line = bresenham_line(start, goal);
+  for (auto i = 0; i < (int) sight_line.size() - 1; i++) {
+    Coord coord = sight_line[i];
+    Terrain terrain = this->terrain_map[coord.y][coord.x];
+    if (terrain == WALL) {
+      return false;
+    }
+  }
+  return true;
+}
 
-// TODO: In Progress:
 void Game::dijkstra_map_distance(Coord start) {
   this->distance_map = vector<vector<int>>();
   vector<vector<int>> distance = vector<vector<int>>();

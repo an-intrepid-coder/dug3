@@ -14,6 +14,7 @@ typedef struct {
 vector<Coord> bresenham_line(Coord start, Coord goal);
 vector<Coord> get_neighbors(Coord coord);
 int get_distance(Coord start, Coord other);
+int get_chebyshev_distance(Coord start, Coord other);
 
 // Custom Priority Queue that does some things the STL version doesn't:
 class PriorityQueueCoord {

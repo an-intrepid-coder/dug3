@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <cmath>
 #include <limits.h>
 #include "coord.hpp"
 #include "display.hpp"
 
 using std::abs;
+using std::max;
 
 /* Returns a vector of coordinates representing a Bresenham line
    from the start Coord to the end Coord.  */
@@ -53,6 +55,11 @@ vector<Coord> get_neighbors(Coord coord) {
 // Manhattan Distance:
 int get_distance(Coord start, Coord other) {
   return abs(start.x - other.x) + abs(start.y - other.y);
+}
+
+// Chebyshev distance:
+int get_chebyshev_distance(Coord start, Coord other) {
+  return max(abs(other.x - start.x), abs(other.y - start.y));
 }
 
 PriorityQueueCoord::PriorityQueueCoord(int cap) {

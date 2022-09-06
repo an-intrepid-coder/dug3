@@ -7,5 +7,7 @@
 #define HUD_STRING_SIZE 16
 #define LOG_STRING_SIZE 80
 
+#define VISION_RADIUS 9
+
 #endif
 
