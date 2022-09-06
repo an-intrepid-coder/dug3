@@ -3,7 +3,8 @@
 
 typedef enum {
   NO_BEHAVIOR,
-  OBLIVIOUS_WANDERER // More TODO
+  OBLIVIOUS_WANDERER,
+  SEEKING_HUNTER
 } Behavior;
 
 

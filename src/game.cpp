@@ -27,7 +27,11 @@ Game::Game() {
   Coord spawn = this->get_spawn_loc();
   this->actors.push_back(Player(spawn.y, spawn.x));
   Coord spawn2 = this->get_spawn_loc();
-  this->actors.push_back(WanderBot(spawn2.y, spawn2.x));
+  this->actors.push_back(Slime(spawn2.y, spawn2.x));
+  Coord spawn3 = this->get_spawn_loc();
+  this->actors.push_back(Bugbear(spawn3.y, spawn3.x));
+
+  this->dijkstra_map_distance(spawn);
 }
 
 bool Game::toggle_displaying_distance_map() {
@@ -89,7 +93,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
   int ty = actor->get_y() + dy;
   int tx = actor->get_x() + dx;
   Terrain terrain = this->get_terrain(ty, tx);
-  //for (auto actor2 : this->actors) {
+  // Check for actors and initiate combat if needed:
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor2 = &this->actors[i];
     if (actor2->get_y() == ty && actor2->get_x() == tx && actor != actor2) {
@@ -105,9 +109,16 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
       return true;
     }
   }
+  // Move the actor:
   if (terrain == FLOOR) {
     actor->set_y(ty);
     actor->set_x(tx);
+    // Assess the cost (diagonal is effectively 2 moves):
+    if (dy != 0 && dx != 0) {
+      actor->change_movement_points(-2);
+    } else {
+      actor->change_movement_points(-1);
+    }
     return true;
   }
   return false;
@@ -115,6 +126,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
 
 // Returns true if the player used their turn; false otherwise.
 bool Game::handle_input() {
+  flushinp();
   auto input = getch();
   Actor* player = this->get_player();
   switch(input) {
@@ -151,7 +163,7 @@ bool Game::handle_input() {
       break;
     case 'D':
       // Overlay Djikstra distance:
-      this->djikstra_map_distance(Coord{player->get_y(), player->get_x()});
+      this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
       this->toggle_displaying_distance_map();
       break;
     default:
@@ -162,15 +174,25 @@ bool Game::handle_input() {
 
 void Game::game_loop() {
   while (this->get_player()->is_alive()) {
+    Actor* player = this->get_player();
+    player->change_movement_points(1);
+
     this->display_scene();
 
-    bool turn_taken = this->handle_input();
-    if (turn_taken) { // TODO: Diagonal movement cost
+    bool turn_taken = false;
+    if (player->get_movement_points() == 1) {
+      turn_taken = this->handle_input();
+    } else if (player->get_movement_points() < 1) {
+      turn_taken = true;
+    }
+    if (turn_taken) { 
       this->run_behavior();
       this->clear_dead();
       this->turn++;
+      Coord coord = Coord{player->get_y(), player->get_x()};
+      this->dijkstra_map_distance(coord);
     }
-
+    
     // About 30 FPS
     std::this_thread::sleep_for(33ms);
   } 
@@ -255,25 +277,61 @@ void Game::generate_test_map() {
 void Game::run_behavior() {
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor = &this->actors[i];
-    Behavior behavior = actor->get_behavior();
-    if (behavior == OBLIVIOUS_WANDERER) {
-      // TODO: Wander in a random direction, with no regard for the
-      //       player. Attack if they are in the targeted square.
-      int dy = this->rng() % 2;
-      if (this->rng() % 2 == 0) {
-        dy = dy * -1;
+    actor->change_movement_points(1);
+    if (actor->get_movement_points() == 1) {
+      Behavior behavior = actor->get_behavior();
+      if (behavior == OBLIVIOUS_WANDERER) {
+        // Wander in a random direction, with no regard for the
+        // player. Attack if they are in the targeted square.
+        int dy = this->rng() % 2;
+        if (this->rng() % 2 == 0) {
+          dy = dy * -1;
+        }
+        int dx = this->rng() % 2;
+        if (this->rng() % 2 == 0) {
+          dx = dx * -1;
+        }
+        this->move_actor(actor, dy, dx);
+      } else if (behavior == SEEKING_HUNTER) {
+        /* Rolls "down-hill" towards the player, regardless of 
+           FOV.  */
+        Coord coord = Coord{actor->get_y(), actor->get_x()};
+        Coord dest = this->downhill_from(coord);
+        int dy = dest.y - actor->get_y();
+        int dx = dest.x - actor->get_x();
+        this->move_actor(actor, dy, dx);
       }
-      int dx = this->rng() % 2;
-      if (this->rng() % 2 == 0) {
-        dx = dx * -1;
-      }
-      this->move_actor(actor, dy, dx);
-    } // TODO: Other behavior types
+      // TODO: Other behavior types
+    }
   }
 }
 
+Coord Game::downhill_from(Coord coord) {
+  vector<Coord> vec = get_neighbors(coord);
+  vector<int> vec2 = vector<int>();
+  for (auto coord : vec) {
+    vec2.push_back(this->distance_map[coord.y][coord.x]);
+  }
+  int low = INT_MAX;
+  for (auto i = 0; i < (int) vec2.size(); i++) {
+    if (vec2[i] < low) {
+      low = vec2[i];
+    }
+  }
+  vector<Coord> vec3 = vector<Coord>();
+  for (auto i = 0; i < (int) vec2.size(); i++) {
+    if (vec2[i] == low) {
+      vec3.push_back(vec[i]);
+    }
+  }
+  int j = (int) (this->rng() % vec3.size());
+  Coord dest = vec3[j];
+  return dest;
+}
+
+
 // TODO: In Progress:
-void Game::djikstra_map_distance(Coord start) {
+void Game::dijkstra_map_distance(Coord start) {
   this->distance_map = vector<vector<int>>();
   vector<vector<int>> distance = vector<vector<int>>();
   vector<vector<vector<Coord>>> previous = vector<vector<vector<Coord>>>(); 

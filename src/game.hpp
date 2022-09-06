@@ -1,6 +1,7 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
+#include <algorithm>
 #include <random>
 #include <time.h>
 #include <vector>
@@ -27,7 +28,7 @@ class Game {
     
   private:
     std::mt19937_64 rng;
-    unsigned long int turn = 0;
+    unsigned long int turn = 0; 
     vector<Actor> actors;
     vector<string> log;
     // Map stuff
@@ -43,7 +44,8 @@ class Game {
     void run_behavior();
     Actor* get_player();
     void clear_dead();
-    void djikstra_map_distance(Coord start);
+    void dijkstra_map_distance(Coord start);
+    Coord downhill_from(Coord coord);
 };
 
 #endif

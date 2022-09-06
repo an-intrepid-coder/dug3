@@ -14,8 +14,23 @@ Actor::Actor(bool is_player,
   this->max_health = max_health;
   this->behavior = behavior;
   this->name = name;
+  this->movement_points = 1;
 }
     
+int Actor::get_movement_points() {
+  return this->movement_points;
+}
+
+// Returns movements points after change:
+int Actor::change_movement_points(int amt) {
+  this->movement_points = this->movement_points + amt;
+  // For now, max of 1: (more granularity down the road TODO)
+  if (this->movement_points > 1) {
+    this->movement_points = 1;
+  }
+  return this->movement_points;
+}
+
 void Actor::set_y(int y) {
   this->y = y;
 }
@@ -76,7 +91,11 @@ Actor Player(int y, int x) {
   return Actor(true, '@', y, x, 10, NO_BEHAVIOR, "Player");
 }
 
-Actor WanderBot(int y, int x) {
-  return Actor(false, 'b', y, x, 3, OBLIVIOUS_WANDERER, "WanderBot");
+Actor Slime(int y, int x) {
+  return Actor(false, 's', y, x, 3, OBLIVIOUS_WANDERER, "Slime");
+}
+
+Actor Bugbear(int y, int x) {
+  return Actor(false, 'B', y, x, 8, SEEKING_HUNTER, "Bugbear");
 }
 

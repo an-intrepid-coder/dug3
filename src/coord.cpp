@@ -50,14 +50,9 @@ vector<Coord> get_neighbors(Coord coord) {
   return vec;
 }
 
-// TODO: Handle diagonal edges properly
+// Manhattan Distance:
 int get_distance(Coord start, Coord other) {
-  int a = abs(other.x - start.x), b = abs(other.y - start.y);
-  if (a > b) {
-    return a;
-  } else {
-    return b;
-  }
+  return abs(start.x - other.x) + abs(start.y - other.y);
 }
 
 PriorityQueueCoord::PriorityQueueCoord(int cap) {

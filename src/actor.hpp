@@ -26,6 +26,8 @@ class Actor {
     int get_health();
     int get_max_health();
     string get_name();
+    int get_movement_points();
+    int change_movement_points(int amt);
   private:
     string name;
     bool is_player;
@@ -35,11 +37,13 @@ class Actor {
     int health;
     int max_health;
     Behavior behavior;
+    int movement_points;
     // TODO: Much more
 };
 
 Actor Player(int y, int x);
-Actor WanderBot(int y, int x);
+Actor Slime(int y, int x);
+Actor Bugbear(int y, int x);
 
 #endif
 
