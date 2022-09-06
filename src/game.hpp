@@ -10,12 +10,6 @@
 #include "terrain.hpp"
 #include "display.hpp"
 
-#define MAP_HEIGHT 20
-#define MAP_WIDTH 64
-#define CONSOLE_ROWS 4
-#define HUD_STRING_SIZE 16
-#define LOG_STRING_SIZE 80
-
 using std::vector;
 using std::string;
 
@@ -29,6 +23,7 @@ class Game {
     void game_loop(); 
     bool move_actor(Actor* actor, int dy, int dx);
     bool handle_input();
+    bool toggle_displaying_distance_map();
     
   private:
     std::mt19937_64 rng;
@@ -36,14 +31,19 @@ class Game {
     vector<Actor> actors;
     vector<string> log;
     // Map stuff
-    bool map_generated;
+    bool terrain_map_generated;
     vector<vector<Terrain>> terrain_map;
+    bool distance_map_generated;
+    // TODO: Distance map display is debug only
+    bool displaying_distance_map;
+    vector<vector<int>> distance_map;
 
     Terrain get_terrain(int y, int x);
     Coord get_spawn_loc();
     void run_behavior();
     Actor* get_player();
     void clear_dead();
+    void djikstra_map_distance(Coord start);
 };
 
 #endif

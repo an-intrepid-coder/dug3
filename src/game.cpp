@@ -1,29 +1,38 @@
 #include <thread>
 #include <chrono>
+#include <queue>
 #include <numeric>
 #include "game.hpp"
 
 using std::to_string;
 using std::vector;
+using std::priority_queue;
 
 using namespace std::chrono_literals;
 
 Game::Game() {
-  this->map_generated = false;
+  this->terrain_map_generated = false;
 
   this->rng = std::mt19937_64();
   this->rng.seed(time(NULL));
 
   this->turn = 0;
 
+  this->distance_map = vector<vector<int>>();
+  this->displaying_distance_map = false;
   this->generate_test_map();
-  this->map_generated = true;
+  this->terrain_map_generated = true;
 
   this->actors = vector<Actor>();
   Coord spawn = this->get_spawn_loc();
   this->actors.push_back(Player(spawn.y, spawn.x));
   Coord spawn2 = this->get_spawn_loc();
   this->actors.push_back(WanderBot(spawn2.y, spawn2.x));
+}
+
+bool Game::toggle_displaying_distance_map() {
+  this->displaying_distance_map = !this->displaying_distance_map;
+  return this->displaying_distance_map;
 }
 
 Actor* Game::get_player() {
@@ -37,7 +46,7 @@ Actor* Game::get_player() {
 }
 
 Coord Game::get_spawn_loc() {
-  if (!this->map_generated) {
+  if (!this->terrain_map_generated) {
     // TODO: Exception handling
     uninit_curses();
     exit(1);
@@ -107,37 +116,43 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
 // Returns true if the player used their turn; false otherwise.
 bool Game::handle_input() {
   auto input = getch();
+  Actor* player = this->get_player();
   switch(input) {
     case 'Q':
       uninit_curses();
       exit(0);
       break;
     case 'h':
-      return this->move_actor(this->get_player(), 0, -1);
+      return this->move_actor(player, 0, -1);
       break;
     case 'j':
-      return this->move_actor(this->get_player(), 1, 0);
+      return this->move_actor(player, 1, 0);
       break;
     case 'k':
-      return this->move_actor(this->get_player(), -1, 0);
+      return this->move_actor(player, -1, 0);
       break;
     case 'l':
-      return this->move_actor(this->get_player(), 0, 1);
+      return this->move_actor(player, 0, 1);
       break;
     case 'y':
-      return this->move_actor(this->get_player(), -1, -1);
+      return this->move_actor(player, -1, -1);
       break;
     case 'u':
-      return this->move_actor(this->get_player(), -1, 1);
+      return this->move_actor(player, -1, 1);
       break;
     case 'b':
-      return this->move_actor(this->get_player(), 1, -1);
+      return this->move_actor(player, 1, -1);
       break;
     case 'n':
-      return this->move_actor(this->get_player(), 1, 1);
+      return this->move_actor(player, 1, 1);
       break;
     case '.':
-      return this->move_actor(this->get_player(), 0, 0);
+      return this->move_actor(player, 0, 0);
+      break;
+    case 'D':
+      // Overlay Djikstra distance:
+      this->djikstra_map_distance(Coord{player->get_y(), player->get_x()});
+      this->toggle_displaying_distance_map();
       break;
     default:
       break;
@@ -186,7 +201,12 @@ void Game::display_scene() {
           mvaddch(y, x, '#');
           break;
         case FLOOR:
-          mvaddch(y, x, '.');
+          if (this->displaying_distance_map) { 
+            char d = 'a' + this->distance_map[y][x];
+            mvaddch(y, x, d);
+          } else {
+            mvaddch(y, x, '.');
+          }
           break;
       } 
     }
@@ -251,4 +271,52 @@ void Game::run_behavior() {
     } // TODO: Other behavior types
   }
 }
+
+// TODO: In Progress:
+void Game::djikstra_map_distance(Coord start) {
+  this->distance_map = vector<vector<int>>();
+  vector<vector<int>> distance = vector<vector<int>>();
+  vector<vector<vector<Coord>>> previous = vector<vector<vector<Coord>>>(); 
+  PriorityQueueCoord pq = PriorityQueueCoord(MAP_HEIGHT * MAP_WIDTH);
+
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    distance.push_back(vector<int>());
+    previous.push_back(vector<vector<Coord>>());
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      if (!(start.y == y && start.x == x)) {
+        distance[y].push_back(INT_MAX);
+      } else {
+        distance[y].push_back(0);
+      }
+      previous[y].push_back(vector<Coord>());
+      pq.insert(Coord{y, x}, distance[y][x]);
+    }
+  }
+
+  while (pq.get_size() != 0) {
+    Coord next = pq.extract_min();
+    vector<Coord> neighbors = get_neighbors(next);
+    for (auto coord : neighbors) {
+      if (pq.contains(coord)) {
+        int alt = distance[next.y][next.x] + get_distance(next, coord);
+        if (alt < distance[coord.y][coord.x]) {
+          distance[coord.y][coord.x] = alt;
+          previous[coord.y][coord.x].push_back(next);
+          pq.change_priority_by_coord(coord, alt);
+        }
+      }
+    }
+  }
+
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    this->distance_map.push_back(vector<int>());
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      this->distance_map[y].push_back(distance[y][x]);
+    }
+  }
+  this->distance_map_generated = true;
+  /* TODO: Backtrack to the origin for the shortest path(s). Currently
+           not set up to do that yet.  */
+}
+
 
