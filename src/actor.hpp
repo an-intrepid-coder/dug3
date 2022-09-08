@@ -1,13 +1,18 @@
 #ifndef ACTOR_HPP
 #define ACTOR_HPP
 
+#include <vector>
 #include <string>
 #include "behavior.hpp"
+#include "item.hpp"
 
 using std::string;
+using std::vector;
 
 class Actor {
   public:
+    vector<Consumable> consumable_inventory;
+    vector<Gear> gear_inventory; 
     Actor(bool is_player, 
           char symbol,  
           int y, int x, 
@@ -28,6 +33,13 @@ class Actor {
     string get_name();
     int get_movement_points();
     int change_movement_points(int amt);
+    int get_inv_size_consumable();
+    int get_inv_size_gear();
+    int get_total_inv_size();
+    int add_consumable(Consumable item);
+    int remove_consumable(Consumable* item); // TODO
+    int add_gear(Gear item); // TODO
+    int remove_gear(Gear* item); // TODO
   private:
     string name;
     bool is_player;
@@ -38,7 +50,6 @@ class Actor {
     int max_health;
     Behavior behavior;
     int movement_points;
-    // TODO: Much more
 };
 
 Actor Player(int y, int x);

@@ -1,3 +1,4 @@
+#include <string>
 #include "display.hpp"
 
 // Inits curses with desired options:

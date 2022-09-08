@@ -2,6 +2,7 @@
 #include <chrono>
 #include <queue>
 #include <numeric>
+#include <string>
 #include "game.hpp"
 
 using std::to_string;
@@ -11,13 +12,13 @@ using std::priority_queue;
 using namespace std::chrono_literals;
 
 Game::Game() {
-  this->terrain_map_generated = false;
-
+  this->interface_mode = MAIN_GAME;
+  this->turn = 0;
   this->rng = std::mt19937_64();
   this->rng.seed(time(NULL));
 
-  this->turn = 0;
-
+  // Begin map setup:
+  this->terrain_map_generated = false;
   this->distance_map = vector<vector<int>>();
   this->displaying_distance_map = false;
   this->generate_test_map();
@@ -30,9 +31,12 @@ Game::Game() {
     }
   }
 
+  // Spawn player:
   this->actors = vector<Actor>();
   Coord spawn = this->get_spawn_loc();
   this->actors.push_back(Player(spawn.y, spawn.x));
+
+  // Spawn some test enemies:
   Coord spawn2 = this->get_spawn_loc();
   this->actors.push_back(Slime(spawn2.y, spawn2.x));
   Coord spawn3 = this->get_spawn_loc();
@@ -40,8 +44,39 @@ Game::Game() {
   Coord spawn4 = this->get_spawn_loc();
   this->actors.push_back(Troll(spawn4.y, spawn4.x));
 
+  // Spawn some items:
+  Actor* player = this->get_player();
+  player->add_consumable(MinorHealingPotion());
+  player->add_consumable(MinorHealingPotion());
+  player->add_consumable(MinorHealingPotion());
+
+  // Finalize map setup:
   this->dijkstra_map_distance(spawn);
   this->calculate_fov();
+}
+
+int Game::roll_d8() {
+  return this->rng() % 8 + 1;
+}
+
+// Returns true if the item was successfully used:
+bool Game::use_consumable(Consumable* item, Actor* user) {
+  // TODO: Targetable items, such as wands & scrolls
+  ItemEffect effect = item->get_effect();
+  if (item->get_charges() > 0) {
+    if (effect == MINOR_HEALING) {
+      // Tentative:
+      int heal_amt = 10 + this->roll_d8();
+      user->change_health(heal_amt);
+      string log_str = user->get_name() + " healed for " + to_string(heal_amt);
+      this->log.push_back(log_str);
+      if (item->change_charges(-1) == 0) {
+        user->remove_consumable(item);
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 Visibility Game::get_fov(int y, int x) {
@@ -132,6 +167,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
   int ty = actor->get_y() + dy;
   int tx = actor->get_x() + dx;
   Terrain terrain = this->get_terrain(ty, tx);
+  bool blocked = false;
   // Check for actors and initiate combat if needed:
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor2 = &this->actors[i];
@@ -155,22 +191,45 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
         this->log.push_back(dmg_log);
       }
       return true;
+    } else if (actor2_loc.y == ty &&
+               actor2_loc.x == tx &&
+               actor != actor2) {
+      blocked = true;
     }
   }
-  // Move the actor:
-  if (terrain == FLOOR) {
-    actor->set_y(ty);
-    actor->set_x(tx);
-    // Assess the cost (diagonal is effectively 2 moves):
-    if (dy != 0 && dx != 0) {
-      actor->change_movement_points(-2);
-    } else {
-      actor->change_movement_points(-1);
+  if (!blocked) {
+    // Move the actor:
+    if (terrain == FLOOR) {
+      actor->set_y(ty);
+      actor->set_x(tx);
+      // Assess the cost (diagonal is effectively 2 moves):
+      if (dy != 0 && dx != 0) {
+        actor->change_movement_points(-2);
+      } else {
+        actor->change_movement_points(-1);
+      }
+      return true;
     }
-    return true;
   }
   return false;
 }
+
+// Returns true if the player used their turn; false otherwise.
+bool Game::handle_inventory_input() {
+  flushinp();
+  auto input = getch();
+  Actor* player = this->get_player();
+  if (input >= 97 || input <= 120) { // ASCII a - x
+    int i = input - 97;
+    if (i < (int) player->consumable_inventory.size()) {
+      this->interface_mode = MAIN_GAME;
+      Consumable* item = &player->consumable_inventory[i];
+      return this->use_consumable(item, player);
+    }
+  }
+  return false;
+}
+
 
 // Returns true if the player used their turn; false otherwise.
 bool Game::handle_input() {
@@ -178,10 +237,11 @@ bool Game::handle_input() {
   auto input = getch();
   Actor* player = this->get_player();
   switch(input) {
-    case 'Q':
+    case 'Q': // Quit
       uninit_curses();
       exit(0);
       break;
+    // Movement keys:
     case 'h':
       return this->move_actor(player, 0, -1);
       break;
@@ -221,6 +281,10 @@ bool Game::handle_input() {
           this->fov_map[y][x] = VISIBLE;
         }
       }
+      break;
+    case 'i': // Inventory menu
+      this->interface_mode = INVENTORY;
+      break;
     default:
       break;
   }
@@ -230,14 +294,23 @@ bool Game::handle_input() {
 void Game::game_loop() {
   for (;;) {
     Actor* player = this->get_player();
+    InterfaceMode mode = this->interface_mode;
 
-    this->display_scene();
+    if (mode == MAIN_GAME) {
+      this->display_scene();
+    } else if (mode == INVENTORY) {
+      this->display_inventory(); // <-- TODO
+    }
 
     bool turn_taken = false;
-    if (player->get_movement_points() == 1) {
-      turn_taken = this->handle_input();
-    } else if (player->get_movement_points() < 1) {
-      turn_taken = true;
+    if (mode == MAIN_GAME) {
+      if (player->get_movement_points() == 1) {
+        turn_taken = this->handle_input();
+      } else if (player->get_movement_points() < 1) {
+        turn_taken = true;
+      }
+    } else if (mode == INVENTORY) {
+      turn_taken = this->handle_inventory_input(); // TODO
     }
     if (turn_taken) { 
       player->change_movement_points(1);
@@ -266,7 +339,23 @@ Terrain Game::get_terrain(int y, int x) {
   }
 }
 
-// TODO: args
+void Game::display_inventory() { // Consumables only
+  erase();
+  Actor* player = this->get_player();
+  int n = 0;
+  for (auto item : player->consumable_inventory) {
+    char symbol = (char) ('a' + n);
+    mvaddch(n, 0, symbol);
+    string str = "). " + item.get_name();
+    mvaddstr(n, 1, str.c_str());
+    n++;
+    if (n > INVENTORY_ROWS) {
+      break;
+    }
+  }
+  refresh();
+}
+
 void Game::display_scene() {
   erase();
 
@@ -292,7 +381,7 @@ void Game::display_scene() {
             break;
           case FLOOR:
             if (this->displaying_distance_map) { 
-              char d = 'a' + this->distance_map[y][x];
+              char d = (char) ('a' + this->distance_map[y][x]);
               mvaddch(y, x, d);
             } else {
               mvaddch(y, x, '.');
@@ -323,8 +412,11 @@ void Game::display_scene() {
   std::string turn_str = "Turn: " + to_string(this->turn);
   mvaddstr(1, MAP_WIDTH, turn_str.c_str());
 
-  std::string mp_str = "MP: " + to_string(player->get_movement_points());
+  std::string mp_str = "Move: " + to_string(player->get_movement_points());
   mvaddstr(2, MAP_WIDTH, mp_str.c_str());
+
+  std::string hp_str = "HP: " + to_string(player->get_health()) + "/" + to_string(player->get_max_health());
+  mvaddstr(3, MAP_WIDTH, hp_str.c_str());
 
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {
@@ -350,7 +442,6 @@ void Game::generate_test_map() {
       }
     }
   }
-  // TODO: Actors and Items
 }
 
 void Game::run_behavior() {
@@ -399,6 +490,7 @@ void Game::run_behavior() {
 }
 
 Coord Game::downhill_from(Coord coord) {
+  // TODO: Account for actors in the way
   vector<Coord> vec = get_neighbors(coord);
   vector<int> vec2 = vector<int>();
   for (auto coord : vec) {

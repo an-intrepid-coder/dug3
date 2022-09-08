@@ -1,4 +1,5 @@
 #include "actor.hpp"
+#include "constants.hpp"
 
 Actor::Actor(bool is_player, 
              char symbol, 
@@ -15,6 +16,8 @@ Actor::Actor(bool is_player,
   this->behavior = behavior;
   this->name = name;
   this->movement_points = 1;
+  this->consumable_inventory = vector<Consumable>();
+  this->gear_inventory = vector<Gear>();
 }
     
 int Actor::get_movement_points() {
@@ -85,6 +88,39 @@ Behavior Actor::get_behavior() {
 
 string Actor::get_name() {
   return this->name;
+}
+
+int Actor::get_inv_size_consumable() {
+  return (int) this->consumable_inventory.size();
+}
+
+int Actor::get_inv_size_gear() {
+  return (int) this->gear_inventory.size();
+}
+
+int Actor::get_total_inv_size() {
+  return (int) (this->consumable_inventory.size() + this->gear_inventory.size());
+}
+
+// Returns total inventory size:
+int Actor::add_consumable(Consumable item) {
+  if (this->consumable_inventory.size() < INVENTORY_ROWS) {
+    this->consumable_inventory.push_back(item);
+  }
+  return this->get_total_inv_size();
+}
+
+// Returns total inventory size:
+int Actor::remove_consumable(Consumable* item) { // TODO
+  int i = 0;
+  for (auto it = this->consumable_inventory.begin(); it != this->consumable_inventory.end(); i++) {
+    if (&this->consumable_inventory[i] == item) {
+      this->consumable_inventory.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  return (int) this->consumable_inventory.size();
 }
 
 Actor Player(int y, int x) {

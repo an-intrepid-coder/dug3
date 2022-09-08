@@ -4,6 +4,8 @@
 #define MAP_HEIGHT 20
 #define MAP_WIDTH 64
 #define CONSOLE_ROWS 4
+#define INVENTORY_ROWS 24
+
 #define HUD_STRING_SIZE 16
 #define LOG_STRING_SIZE 80
 

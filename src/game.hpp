@@ -20,29 +20,40 @@ typedef enum {
   VISIBLE
 } Visibility;
 
+typedef enum {
+  MAIN_GAME,
+  INVENTORY
+  // TODO: Many more!
+} InterfaceMode;
+
 // Integrated early game object for now. No separate scene stuff yet.
 
 class Game {
   public:
     Game();
     void generate_test_map();
-    void display_scene(); // TODO: args
+    void display_scene(); 
+    void display_inventory();
     void game_loop(); 
     bool move_actor(Actor* actor, int dy, int dx);
     bool handle_input();
     bool toggle_displaying_distance_map();
+    int roll_d8();
     
   private:
+    InterfaceMode interface_mode;
+
     std::mt19937_64 rng;
     unsigned long int turn = 0; 
+
     vector<Actor> actors;
     vector<string> log;
+
     // Map stuff
     bool terrain_map_generated;
     vector<vector<Terrain>> terrain_map;
     vector<vector<Visibility>> fov_map;
     bool distance_map_generated;
-    // TODO: Distance map display is debug only
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
     
@@ -56,6 +67,8 @@ class Game {
     Coord downhill_from(Coord coord);
     bool can_see(Actor* viewer, Coord goal);
     void calculate_fov();
+    bool use_consumable(Consumable* item, Actor* user);
+    bool handle_inventory_input();
 };
 
 #endif
