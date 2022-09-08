@@ -215,7 +215,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
 }
 
 // Returns true if the player used their turn; false otherwise.
-bool Game::handle_inventory_input() {
+bool Game::handle_consumable_inventory_input() {
   flushinp();
   auto input = getch();
   Actor* player = this->get_player();
@@ -225,6 +225,23 @@ bool Game::handle_inventory_input() {
       this->interface_mode = MAIN_GAME;
       Consumable* item = &player->consumable_inventory[i];
       return this->use_consumable(item, player);
+    }
+  }
+  return false;
+}
+
+bool Game::handle_drop_consumable_input() {
+  flushinp();
+  auto input = getch();
+  Actor* player = this->get_player();
+  if (input >= 97 || input <= 120) { // ASCII a - x
+    int i = input - 97;
+    if (i < (int) player->consumable_inventory.size()) {
+      this->interface_mode = MAIN_GAME;
+      Consumable* item = &player->consumable_inventory[i];
+      //return this->use_consumable(item, player);
+      player->remove_consumable(item);
+      return true;
     }
   }
   return false;
@@ -274,6 +291,12 @@ bool Game::handle_input() {
       this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
       this->toggle_displaying_distance_map();
       break;
+    case 'd':
+      // Drop consumables menu: 
+      // TODO: Drop anything menu
+      // TODO: Persistent items (currently destroyed on drop)
+      this->interface_mode = DROP_CONSUMABLE;
+      break;
     case 'R':
       // Reveal the map. (Debug cmd!)
       for (auto y = 0; y < MAP_HEIGHT; y++) {
@@ -283,7 +306,7 @@ bool Game::handle_input() {
       }
       break;
     case 'i': // Inventory menu
-      this->interface_mode = INVENTORY;
+      this->interface_mode = CONSUMABLE_INVENTORY;
       break;
     default:
       break;
@@ -296,12 +319,16 @@ void Game::game_loop() {
     Actor* player = this->get_player();
     InterfaceMode mode = this->interface_mode;
 
+    // Display according to game's current mode:
     if (mode == MAIN_GAME) {
       this->display_scene();
-    } else if (mode == INVENTORY) {
-      this->display_inventory(); // <-- TODO
+    } else if (mode == CONSUMABLE_INVENTORY) {
+      this->display_consumable_inventory();
+    } else if (mode == DROP_CONSUMABLE) {
+      this->display_consumable_inventory();
     }
 
+    // Take input based on the game's current mode:
     bool turn_taken = false;
     if (mode == MAIN_GAME) {
       if (player->get_movement_points() == 1) {
@@ -309,9 +336,13 @@ void Game::game_loop() {
       } else if (player->get_movement_points() < 1) {
         turn_taken = true;
       }
-    } else if (mode == INVENTORY) {
-      turn_taken = this->handle_inventory_input(); // TODO
+    } else if (mode == CONSUMABLE_INVENTORY) {
+      turn_taken = this->handle_consumable_inventory_input();
+    } else if (mode == DROP_CONSUMABLE) {
+      turn_taken = this->handle_drop_consumable_input();
     }
+
+    // Process a game turn if input resulted in a turn taken:
     if (turn_taken) { 
       player->change_movement_points(1);
       this->run_behavior();
@@ -339,7 +370,7 @@ Terrain Game::get_terrain(int y, int x) {
   }
 }
 
-void Game::display_inventory() { // Consumables only
+void Game::display_consumable_inventory() { // Consumables only
   erase();
   Actor* player = this->get_player();
   int n = 0;

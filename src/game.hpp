@@ -22,7 +22,8 @@ typedef enum {
 
 typedef enum {
   MAIN_GAME,
-  INVENTORY
+  CONSUMABLE_INVENTORY,
+  DROP_CONSUMABLE,
   // TODO: Many more!
 } InterfaceMode;
 
@@ -31,14 +32,7 @@ typedef enum {
 class Game {
   public:
     Game();
-    void generate_test_map();
-    void display_scene(); 
-    void display_inventory();
     void game_loop(); 
-    bool move_actor(Actor* actor, int dy, int dx);
-    bool handle_input();
-    bool toggle_displaying_distance_map();
-    int roll_d8();
     
   private:
     InterfaceMode interface_mode;
@@ -57,6 +51,13 @@ class Game {
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
     
+    void generate_test_map();
+    void display_scene(); 
+    void display_consumable_inventory();
+    bool move_actor(Actor* actor, int dy, int dx);
+    bool handle_input();
+    bool toggle_displaying_distance_map();
+    int roll_d8();
     Terrain get_terrain(int y, int x);
     Visibility get_fov(int y, int x);
     Coord get_spawn_loc();
@@ -68,7 +69,8 @@ class Game {
     bool can_see(Actor* viewer, Coord goal);
     void calculate_fov();
     bool use_consumable(Consumable* item, Actor* user);
-    bool handle_inventory_input();
+    bool handle_consumable_inventory_input();
+    bool handle_drop_consumable_input();
 };
 
 #endif
