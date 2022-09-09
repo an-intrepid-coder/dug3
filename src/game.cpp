@@ -5,6 +5,7 @@
 #include <string>
 #include "game.hpp"
 
+using std::string;
 using std::to_string;
 using std::vector;
 using std::priority_queue;
@@ -14,29 +15,92 @@ using namespace std::chrono_literals;
 Game::Game() {
   this->interface_mode = MAIN_GAME;
   this->turn = 0;
+  this->level = 1;
   this->rng = std::mt19937_64();
-  this->rng.seed(time(NULL));
+  this->rng.seed(time(NULL)); 
+  this->actors = vector<Actor>();
+  this->actors.push_back(Player(0, 0));
+  this->generate_level(1);
+}
 
-  // Begin map setup:
+void Game::gold_check() {
+  Actor* player = this->get_player();
+  if (this->gold_map[player->get_y()][player->get_x()]) {
+    int gold = gold_amt(this->level);
+    player->change_gold(gold);
+    string log_str = player->get_name() + " picked up " + to_string(gold) + " gold.";
+    this->log.push_back(log_str);
+    this->gold_map[player->get_y()][player->get_x()] = false;
+  }
+}
+
+void Game::loot_check() {
+  Actor* player = this->get_player();
+  if (this->loot_map[player->get_y()][player->get_x()]) {
+    Consumable loot = generate_random_consumable(this->level);
+
+    string log_str = player->get_name() + " picked up " + loot.get_name();
+    this->log.push_back(log_str);
+    
+    player->add_consumable(loot);
+
+
+    this->loot_map[player->get_y()][player->get_x()] = false;
+  }
+}
+
+void Game::generate_level(int level) { // TODO: More args
+  int gold_chance = 5;
+  int loot_chance = 5;
+  // Tentative odds out of 1000 ^
+
+  // Dungeon map setup:
   this->terrain_map_generated = false;
   this->distance_map = vector<vector<int>>();
   this->displaying_distance_map = false;
-  this->generate_test_map();
+
+  this->generate_map_room_accretion();
   this->terrain_map_generated = true;
+
   this->fov_map = vector<vector<Visibility>>();
+  this->gold_map = vector<vector<bool>>();
+  this->loot_map = vector<vector<bool>>();
+
   for (auto y = 0; y < MAP_HEIGHT; y++) {
     this->fov_map.push_back(vector<Visibility>());
+    this->gold_map.push_back(vector<bool>());
+    this->loot_map.push_back(vector<bool>());
+
     for (auto x = 0; x < MAP_WIDTH; x++) {
       this->fov_map[y].push_back(UNEXPLORED);
+
+      if (this->roll_dx(1000) <= gold_chance) {
+        this->gold_map[y].push_back(true);
+      } else {
+        this->gold_map[y].push_back(false);
+      }
+
+      if (this->roll_dx(1000) <= loot_chance) {
+        this->loot_map[y].push_back(true);
+      } else {
+        this->loot_map[y].push_back(false);
+      }
     }
   }
 
-  // Spawn player:
-  this->actors = vector<Actor>();
+  // Spawn player and potentially some items:
+  Actor* player = this->get_player();
   Coord spawn = this->get_spawn_loc();
-  this->actors.push_back(Player(spawn.y, spawn.x));
+  player->set_y(spawn.y);
+  player->set_x(spawn.x);
+  if (level == 1) {
+    player->add_consumable(MinorHealingPotion());
+    player->add_consumable(MinorHealingPotion());
+    player->add_consumable(MinorHealingPotion());
+  }
 
   // Spawn some test enemies:
+  // TODO: Vary enemy spawns according to dungeon level
   Coord spawn2 = this->get_spawn_loc();
   this->actors.push_back(Slime(spawn2.y, spawn2.x));
   Coord spawn3 = this->get_spawn_loc();
@@ -44,19 +108,18 @@ Game::Game() {
   Coord spawn4 = this->get_spawn_loc();
   this->actors.push_back(Troll(spawn4.y, spawn4.x));
 
-  // Spawn some items:
-  Actor* player = this->get_player();
-  player->add_consumable(MinorHealingPotion());
-  player->add_consumable(MinorHealingPotion());
-  player->add_consumable(MinorHealingPotion());
-
   // Finalize map setup:
   this->dijkstra_map_distance(spawn);
   this->calculate_fov();
 }
 
-int Game::roll_d8() {
-  return this->rng() % 8 + 1;
+Consumable Game::generate_random_consumable(int level) {
+  return MinorHealingPotion();
+  // TODO: More items & level variation in this function
+}
+
+int Game::roll_dx(int x) {
+  return (int) (this->rng() % x + 1);
 }
 
 // Returns true if the item was successfully used:
@@ -66,7 +129,7 @@ bool Game::use_consumable(Consumable* item, Actor* user) {
   if (item->get_charges() > 0) {
     if (effect == MINOR_HEALING) {
       // Tentative:
-      int heal_amt = 10 + this->roll_d8();
+      int heal_amt = 10 + this->roll_dx(8);
       user->change_health(heal_amt);
       string log_str = user->get_name() + " healed for " + to_string(heal_amt);
       this->log.push_back(log_str);
@@ -344,6 +407,8 @@ void Game::game_loop() {
 
     // Process a game turn if input resulted in a turn taken:
     if (turn_taken) { 
+      this->gold_check();
+      this->loot_check();
       player->change_movement_points(1);
       this->run_behavior();
       if (!player->is_alive()) {
@@ -387,6 +452,17 @@ void Game::display_consumable_inventory() { // Consumables only
   refresh();
 }
 
+int Game::gold_amt(int level) {
+  int gold_max = 100;
+  int gold_min = 20;
+  // ^ Tentative
+  int amt;
+  for (auto l = 0; l < level; l++) {
+    amt = amt + (int) (rng() % (gold_max - gold_min) + gold_min);
+  }
+  return amt;
+}
+
 void Game::display_scene() {
   erase();
 
@@ -421,6 +497,16 @@ void Game::display_scene() {
         }
         if (vis == EXPLORED) {
           attroff(COLOR_PAIR(BLUE_ON_BLACK));
+        } else if (vis == VISIBLE && terrain == FLOOR) {
+          if (this->gold_map[y][x]) {
+            attron(COLOR_PAIR(YELLOW_ON_BLACK));
+            mvaddch(y, x, '*');
+            attroff(COLOR_PAIR(YELLOW_ON_BLACK));
+          } else if (this->loot_map[y][x]) {
+            attron(COLOR_PAIR(YELLOW_ON_BLACK));
+            mvaddch(y, x, '?');
+            attroff(COLOR_PAIR(YELLOW_ON_BLACK));
+          }
         }
       }
     }
@@ -437,17 +523,23 @@ void Game::display_scene() {
   }
 
   // HUD stuff:
-  std::string loc_str = "Loc: (" + to_string(player->get_y()) + ", " + to_string(player->get_x()) + ")";
-  mvaddstr(0, MAP_WIDTH, loc_str.c_str());
+  string mp_str = "Move: " + to_string(player->get_movement_points());
+  mvaddstr(0, MAP_WIDTH, mp_str.c_str());
+
+  string loc_str = "Loc: (" + to_string(player->get_y()) + ", " + to_string(player->get_x()) + ")";
+  mvaddstr(1, MAP_WIDTH, loc_str.c_str());
+
+  string dlvl_str = "DLVL: " + to_string(this->level);
+  mvaddstr(2, MAP_WIDTH, dlvl_str.c_str());
   
-  std::string turn_str = "Turn: " + to_string(this->turn);
-  mvaddstr(1, MAP_WIDTH, turn_str.c_str());
+  string turn_str = "Turn: " + to_string(this->turn);
+  mvaddstr(3, MAP_WIDTH, turn_str.c_str());
 
-  std::string mp_str = "Move: " + to_string(player->get_movement_points());
-  mvaddstr(2, MAP_WIDTH, mp_str.c_str());
+  string hp_str = "HP: " + to_string(player->get_health()) + "/" + to_string(player->get_max_health());
+  mvaddstr(4, MAP_WIDTH, hp_str.c_str());
 
-  std::string hp_str = "HP: " + to_string(player->get_health()) + "/" + to_string(player->get_max_health());
-  mvaddstr(3, MAP_WIDTH, hp_str.c_str());
+  string gold_str = "Gold: " + to_string(player->get_gold());
+  mvaddstr(5, MAP_WIDTH, gold_str.c_str());
 
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {
@@ -461,6 +553,7 @@ void Game::display_scene() {
   refresh();
 }
 
+// Generates an open square map surrounded by four walls, with pillars.
 void Game::generate_test_map() {
   this->terrain_map = vector<vector<Terrain>>();
   for (auto y = 0; y < MAP_HEIGHT; y++) {
@@ -471,6 +564,87 @@ void Game::generate_test_map() {
       } else {
         this->terrain_map[y].push_back(FLOOR);
       }
+    }
+  }
+  for (auto i = 0; i < 20; i++) {
+    int y = (int) (rng() % (MAP_HEIGHT - 1) + 1);
+    int x = (int) (rng() % (MAP_WIDTH - 1) + 1);
+    this->terrain_map[y][x] = WALL;
+  }
+}
+
+// Generates rooms with binary space partition:
+void Game::generate_map_room_accretion() {
+  // Fill the terrain map initially with walls:
+  this->terrain_map = vector<vector<Terrain>>();
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    this->terrain_map.push_back(vector<Terrain>());
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      this->terrain_map[y].push_back(WALL);
+    }
+  }
+
+  // Stamp out rooms one-by-one:
+  auto rooms = vector<Rect>();
+
+  int min_room_height = 2;
+  int max_room_height = 4;
+  int min_room_width = 3;
+  int max_room_width = 6;
+
+  int total_map_space = MAP_HEIGHT * MAP_WIDTH;
+  int used_map_space = 0;
+
+  //for (auto r = 0; r < 3; r++) { 
+  for (;;) {
+    // Generate room dimensions:
+    int y = (int) (rng() % (MAP_HEIGHT - max_room_height - 2) + 1);
+    int x = (int) (rng() % (MAP_WIDTH - max_room_width - 2) + 1);
+    int h = (int) (rng() % (max_room_height - min_room_height) + min_room_height);
+    int w = (int) (rng() % (max_room_width - min_room_width) + min_room_width);
+    Rect room = Rect{Coord{y, x}, h, w};
+  
+    // Check for conflicting rooms:
+    bool bad_placement = false;
+    for (auto rect : rooms) {
+      if (rects_intersect(room, rect)) {
+        bad_placement = true;
+        break;
+      }
+    }
+    if (bad_placement) {
+      continue;
+    }
+
+    rooms.push_back(room);
+
+    // Stamp room:
+    for (auto y = room.top_left.y; y < room.top_left.y + room.height; y++) {
+      for (auto x = room.top_left.x; x < room.top_left.x + room.width; x++) {
+        this->terrain_map[y][x] = FLOOR;
+        used_map_space++;
+      }
+    }
+
+    // Connect room to previous room:
+    if (rooms.size() > 1) {
+      Coord start = rect_center(room);
+      Coord goal = rect_center(rooms[rooms.size() - 2]);
+      vector<Coord> hall = bresenham_line(start, goal);
+      for (auto coord : hall) {
+        Terrain terrain = this->terrain_map[coord.y][coord.x];
+        if (terrain == WALL) {
+          this->terrain_map[coord.y][coord.x] = FLOOR;
+          used_map_space++;
+        } else if (terrain == FLOOR && !rect_contains(room, coord)) {
+          break;
+        }
+      }
+    }
+
+    // Break condition:
+    if (used_map_space > total_map_space / 3) {
+      break;
     }
   }
 }

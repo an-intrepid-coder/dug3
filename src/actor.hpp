@@ -37,13 +37,16 @@ class Actor {
     int get_inv_size_gear();
     int get_total_inv_size();
     int add_consumable(Consumable item);
-    int remove_consumable(Consumable* item); // TODO
+    int remove_consumable(Consumable* item);
     int add_gear(Gear item); // TODO
     int remove_gear(Gear* item); // TODO
+    int get_gold();
+    int change_gold(int amt);
   private:
     string name;
     bool is_player;
     char symbol;
+    int gold;
     int y;
     int x;
     int health;

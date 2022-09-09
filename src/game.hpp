@@ -10,6 +10,7 @@
 #include "coord.hpp"
 #include "terrain.hpp"
 #include "display.hpp"
+#include "rect.hpp"
 
 using std::vector;
 using std::string;
@@ -27,6 +28,11 @@ typedef enum {
   // TODO: Many more!
 } InterfaceMode;
 
+typedef enum {
+  VERTICAL,
+  HORIZONTAL
+} DirectionType;
+
 // Integrated early game object for now. No separate scene stuff yet.
 
 class Game {
@@ -38,10 +44,15 @@ class Game {
     InterfaceMode interface_mode;
 
     std::mt19937_64 rng;
-    unsigned long int turn = 0; 
+    unsigned long int turn; 
+    int level;
 
     vector<Actor> actors;
     vector<string> log;
+
+    vector<vector<bool>> loot_map;
+    vector<vector<bool>> gold_map;
+    // TODO: Gear map
 
     // Map stuff
     bool terrain_map_generated;
@@ -51,13 +62,19 @@ class Game {
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
     
+    void generate_level(int level);
     void generate_test_map();
+    void generate_map_room_accretion();
     void display_scene(); 
     void display_consumable_inventory();
     bool move_actor(Actor* actor, int dy, int dx);
     bool handle_input();
     bool toggle_displaying_distance_map();
-    int roll_d8();
+    int roll_dx(int x);
+    int gold_amt(int level);
+    void gold_check();
+    void loot_check();
+    Consumable generate_random_consumable(int level);
     Terrain get_terrain(int y, int x);
     Visibility get_fov(int y, int x);
     Coord get_spawn_loc();

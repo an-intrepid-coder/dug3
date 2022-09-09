@@ -8,6 +8,7 @@ Actor::Actor(bool is_player,
              Behavior behavior,
              string name) {
   this->is_player = is_player;
+  this->gold = 0;
   this->symbol = symbol;
   this->y = y;
   this->x = x;
@@ -19,7 +20,19 @@ Actor::Actor(bool is_player,
   this->consumable_inventory = vector<Consumable>();
   this->gear_inventory = vector<Gear>();
 }
-    
+
+int Actor::get_gold() {
+  return this->gold;
+}
+
+int Actor::change_gold(int amt) {
+  this->gold = this->gold + amt;
+  if (this->gold < 0) {
+    this->gold = 0;
+  }
+  return this->gold;
+}
+
 int Actor::get_movement_points() {
   return this->movement_points;
 }
