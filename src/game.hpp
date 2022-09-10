@@ -16,6 +16,8 @@
 using std::vector;
 using std::string;
 
+struct Flags { int debug; }; // More to come!
+
 typedef enum {
   UNEXPLORED,
   EXPLORED,
@@ -38,10 +40,11 @@ typedef enum {
 
 class Game {
   public:
-    Game();
+    Game(Flags flags);
     void game_loop(); 
     
   private:
+    Flags flags;
     InterfaceMode interface_mode;
 
     std::mt19937_64 rng;

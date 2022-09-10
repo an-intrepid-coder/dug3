@@ -15,8 +15,9 @@ using std::priority_queue;
 
 using namespace std::chrono_literals;
 
-Game::Game() {
+Game::Game(Flags flags) {
   this->interface_mode = MAIN_GAME;
+  this->flags = flags;
   this->turn = 0;
   this->level = 1;
   this->rng = std::mt19937_64();
@@ -452,8 +453,10 @@ bool Game::handle_input() {
       break;
     case 'D':
       // Overlay Djikstra distance: (Debug cmd!)
-      this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
-      this->toggle_displaying_distance_map();
+      if (this->flags.debug) {
+        this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
+        this->toggle_displaying_distance_map();
+      }
       break;
     case 'd':
       // Drop consumables menu: 
@@ -463,9 +466,11 @@ bool Game::handle_input() {
       break;
     case 'R':
       // Reveal the map. (Debug cmd!)
-      for (auto y = 0; y < MAP_HEIGHT; y++) {
-        for (auto x = 0; x < MAP_WIDTH; x++) {
-          this->fov_map[y][x] = VISIBLE;
+      if (this->flags.debug) {
+        for (auto y = 0; y < MAP_HEIGHT; y++) {
+          for (auto x = 0; x < MAP_WIDTH; x++) {
+            this->fov_map[y][x] = VISIBLE;
+          }
         }
       }
       break;
