@@ -15,5 +15,11 @@
 
 #define BASE_MAX_DMG 3
 
+#define FINAL_DLVL 6 // for now
+
+#define LOOT_DIE 10000
+#define LOOT_CHANCE 50 
+#define GOLD_CHANCE 50 
+
 #endif
 

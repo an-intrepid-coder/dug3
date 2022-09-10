@@ -57,12 +57,15 @@ class Game {
 
     // Map stuff
     bool terrain_map_generated;
+    Coord level_exit;
     vector<vector<Terrain>> terrain_map;
     vector<vector<Visibility>> fov_map;
     bool distance_map_generated;
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
     
+    void title_screen();
+    void game_over(bool victory);
     void generate_level(int level);
     void generate_test_map();
     void generate_map_room_accretion();
@@ -79,6 +82,7 @@ class Game {
     void bonus_check();
     Consumable generate_random_consumable(int level);
     Terrain get_terrain(int y, int x);
+    vector<Coord> get_all_terrain(Terrain type);
     Visibility get_fov(int y, int x);
     Coord get_spawn_loc();
     void run_behavior();

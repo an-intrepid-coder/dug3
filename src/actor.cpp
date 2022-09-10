@@ -180,16 +180,18 @@ Actor Player(int y, int x) {
   return Actor(true, '@', y, x, 10, 0, NO_BEHAVIOR, "Player");
 }
 
+// TODO: Leveled versions.
+
 Actor Slime(int y, int x) {
   return Actor(false, 's', y, x, 3, 1, OBLIVIOUS_WANDERER, "Slime");
 }
 
 Actor Fungoid(int y, int x) {
-  return Actor(false, 'f', y, x, 3, 1, WAITING_HUNTER, "Fungoid");
+  return Actor(false, 'f', y, x, 3, 10, WAITING_HUNTER, "Fungoid");
 }
 
 Actor Bugbear(int y, int x) {
-  return Actor(false, 'B', y, x, 8, 25, SEEKING_HUNTER, "Bugbear");
+  return Actor(false, 'B', y, x, 10, 25, SEEKING_HUNTER, "Bugbear");
 }
 
 Actor Troll(int y, int x) {

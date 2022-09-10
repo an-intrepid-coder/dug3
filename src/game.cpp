@@ -3,8 +3,11 @@
 #include <queue>
 #include <numeric>
 #include <string>
+#include <iostream>
 #include "game.hpp"
 
+using std::cout;
+using std::endl;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -50,10 +53,6 @@ void Game::loot_check() {
 }
 
 void Game::generate_level(int level) { // TODO: More args
-  int gold_chance = 3;
-  int loot_chance = 4;
-  // Tentative odds out of 1000 ^
-
   // Dungeon map setup:
   this->terrain_map_generated = false;
   this->distance_map = vector<vector<int>>();
@@ -74,13 +73,13 @@ void Game::generate_level(int level) { // TODO: More args
     for (auto x = 0; x < MAP_WIDTH; x++) {
       this->fov_map[y].push_back(UNEXPLORED);
 
-      if (this->roll_dx(1000) <= gold_chance) {
+      if (this->roll_dx(LOOT_DIE) <= GOLD_CHANCE) {
         this->gold_map[y].push_back(true);
       } else {
         this->gold_map[y].push_back(false);
       }
 
-      if (this->roll_dx(1000) <= loot_chance) {
+      if (this->roll_dx(LOOT_DIE) <= LOOT_CHANCE) {
         this->loot_map[y].push_back(true);
       } else {
         this->loot_map[y].push_back(false);
@@ -95,17 +94,84 @@ void Game::generate_level(int level) { // TODO: More args
   player->set_x(spawn.x);
   if (level == 1) {
     player->add_consumable(MinorHealingPotion());
-    player->add_consumable(ExtraDamagePotion());
   }
 
-  // Spawn some test enemies:
-  // TODO: Vary enemy spawns according to dungeon level
-  Coord spawn2 = this->get_spawn_loc();
-  this->actors.push_back(Slime(spawn2.y, spawn2.x));
-  Coord spawn3 = this->get_spawn_loc();
-  this->actors.push_back(Bugbear(spawn3.y, spawn3.x));
-  Coord spawn4 = this->get_spawn_loc();
-  this->actors.push_back(Troll(spawn4.y, spawn4.x));
+  // Spawn some enemies:
+  switch (level) {
+    case 1: // 10 fungoids and 10 slimes
+      for (auto i = 0; i < 10; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Slime(spawn2.y, spawn2.x));
+        Coord spawn3 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn3.y, spawn3.x));
+      }
+      break;
+    case 2: // 12 Fungoids, 8 Slimes 
+      for (auto i = 0; i < 12; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn2.y, spawn2.x));
+        if (i < 8) {
+          Coord spawn3 = this->get_spawn_loc();
+          this->actors.push_back(Slime(spawn3.y, spawn3.x));
+        }
+      }
+      break;
+    case 3: // 16 Fungoids, 2 slimes
+      for (auto i = 0; i < 16; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn2.y, spawn2.x));
+        if (i < 2) {
+          Coord spawn3 = this->get_spawn_loc();
+          this->actors.push_back(Slime(spawn3.y, spawn3.x));
+        }
+      }
+      break;
+    case 4: // 8 Fungoids, 2 Trolls, Bugbear
+      for (auto i = 0; i < 8; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn2.y, spawn2.x));
+        if (i < 2) {
+          Coord spawn3 = this->get_spawn_loc();
+          this->actors.push_back(Troll(spawn3.y, spawn3.x));
+        }
+        if (i < 1) {
+          Coord spawn4 = this->get_spawn_loc();
+          this->actors.push_back(Bugbear(spawn4.y, spawn4.x));
+        }
+      }
+      break;
+    case 5: // 6 Trolls, 6 Fungoids, Bugbear
+      for (auto i = 0; i < 8; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn2.y, spawn2.x));
+        Coord spawn3 = this->get_spawn_loc();
+        this->actors.push_back(Troll(spawn3.y, spawn3.x));
+        if (i < 1) {
+          Coord spawn4 = this->get_spawn_loc();
+          this->actors.push_back(Bugbear(spawn4.y, spawn4.x));
+        }
+      }
+      break;
+    case 6: // 8 Trolls, 10 Fungoids, Bugbear
+      for (auto i = 0; i < 10; i++) {
+        Coord spawn2 = this->get_spawn_loc();
+        this->actors.push_back(Fungoid(spawn2.y, spawn2.x));
+        if (i < 8) {
+          Coord spawn3 = this->get_spawn_loc();
+          this->actors.push_back(Troll(spawn3.y, spawn3.x));
+        }
+        if (i < 1) {
+          Coord spawn4 = this->get_spawn_loc();
+          this->actors.push_back(Bugbear(spawn4.y, spawn4.x));
+        }
+      }
+      break;
+  }
+
+  // Spawn the level exit:
+  vector<Coord> exit_spawn = this->get_all_terrain(FLOOR);
+  int j = (int) (this->rng() % exit_spawn.size());
+  this->level_exit = exit_spawn[j];
 
   // Finalize map setup:
   this->dijkstra_map_distance(spawn);
@@ -238,7 +304,7 @@ Coord Game::get_spawn_loc() {
 void Game::clear_dead() {
   int i = 0;
   for (auto it = this->actors.begin(); it != this->actors.end(); i++) {
-    if (!this->actors[i].is_alive()) {
+    if (!this->actors[i].is_alive() && !this->actors[i].get_is_player()) {
       this->actors.erase(it);
     } else {
       ++it;
@@ -373,6 +439,17 @@ bool Game::handle_input() {
     case '.':
       return this->move_actor(player, 0, 0);
       break;
+    case '>':
+      if (player->get_y() == this->level_exit.y &&
+          player->get_x() == this->level_exit.x) {
+        if (this->level == FINAL_DLVL) {
+          this->game_over(true);
+        } else {
+          this->level++;
+          this->generate_level(this->level);
+        }
+      }
+      break;
     case 'D':
       // Overlay Djikstra distance: (Debug cmd!)
       this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
@@ -401,7 +478,47 @@ bool Game::handle_input() {
   return false;
 }
 
+void Game::game_over(bool victory) {
+  uninit_curses();
+  Actor* player = this->get_player();
+  if (victory) {
+    cout << "You have won! The Orb is yours!" << endl;
+  } else {
+    cout << "You have fallen in the dungeon! Game Over." << endl;
+  }
+  cout << "You were on dungeon level " << this->level << endl;
+  cout << "It was turn " << this->turn << endl;
+  cout << "Your name was " << player->get_name() << endl;
+  cout << "You had " << player->get_gold() << " gold!" << endl;
+  cout << "You were level " << player->get_level() << endl;
+  cout << "Last ten console messages:" << endl;
+  for (auto i = 0; i < 10; i++) {
+    int j = (int) this->log.size() - 1 - i;
+    if (j >= 0 && j < (int) this->log.size()) {
+      string msg = this->log[j];  
+      cout << msg << endl;
+    }
+  }
+  exit(0);
+}
+
+void Game::title_screen() {
+  int max_y;
+  int max_x;
+  getmaxyx(stdscr, max_y, max_x);
+  erase();
+  string title = "DUNGEON UNDER GRINDSTONE";
+  string version = "< version 0.0.1 >";
+  string prompt = "...any key to continue...";
+  mvaddstr(max_y / 2 - 2, max_x / 2 - (int) title.size() / 2, title.c_str());
+  mvaddstr(max_y / 2, max_x / 2 - (int) version.size() / 2, version.c_str());
+  mvaddstr(max_y - 2, max_x / 2 - (int) prompt.size() / 2, prompt.c_str());
+  refresh();
+}
+
 void Game::game_loop() {
+  this->title_screen();
+  getch();
   for (;;) {
     Actor* player = this->get_player();
     InterfaceMode mode = this->interface_mode;
@@ -449,7 +566,7 @@ void Game::game_loop() {
     // About 30 FPS
     std::this_thread::sleep_for(33ms);
   } 
-  // TODO: End game and hi-score
+  this->game_over(false);
 }
 
 void Game::bonus_check() {
@@ -474,6 +591,18 @@ Terrain Game::get_terrain(int y, int x) {
   } else {
     return this->terrain_map[y][x];
   }
+}
+
+vector<Coord> Game::get_all_terrain(Terrain type) {
+  auto vec = vector<Coord>();
+  for (auto y = 0; y < MAP_HEIGHT; y++) {
+    for (auto x = 0; x < MAP_WIDTH; x++) {
+      if (this->terrain_map[y][x] == type) {
+        vec.push_back(Coord{y, x});
+      }
+    }
+  }
+  return vec;
 }
 
 void Game::display_consumable_inventory() { // Consumables only
@@ -531,6 +660,12 @@ void Game::display_scene() {
             if (this->displaying_distance_map) { 
               char d = (char) ('a' + this->distance_map[y][x]);
               mvaddch(y, x, d);
+            } else if (y == this->level_exit.y && x == this->level_exit.x) {
+              if (this->level == FINAL_DLVL) {
+                mvaddch(y, x, '!');
+              } else {
+                mvaddch(y, x, '>');
+              }
             } else {
               mvaddch(y, x, '.');
             }
