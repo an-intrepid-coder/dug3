@@ -191,6 +191,22 @@ Consumable Game::generate_random_consumable(int level) {
   // TODO: More items & level variation in this function
 }
 
+// Returns true if the actor leveled up:
+bool Game::award_xp_to(int amt, Actor* actor) {
+  actor->set_xp(actor->get_xp() + amt);
+  if (actor->get_xp() >= XP_TO_LEVEL) {
+    actor->set_level(actor->get_level() + 1);
+    actor->set_xp(actor->get_xp() % XP_TO_LEVEL);
+
+    int bonus_hp = this->roll_dx(8);
+    actor->set_max_health(actor->get_max_health() + bonus_hp);
+    actor->set_health(actor->get_health() + bonus_hp);
+    return true;
+  }
+  return false;
+}
+
+
 int Game::roll_dx(int x) {
   return (int) (this->rng() % x + 1);
 }
@@ -235,7 +251,7 @@ Visibility Game::get_fov(int y, int x) {
   return this->fov_map[y][x];
 }
 
-void Game::calculate_fov() { // TODO: Args
+void Game::calculate_fov() {
   for (auto y = 0; y < MAP_HEIGHT; y++) {
     for (auto x = 0; x < MAP_WIDTH; x++) {
       Visibility vis = this->fov_map[y][x];
@@ -341,7 +357,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
                          "/" + to_string(actor2->get_max_health()) + ")";
         this->log.push_back(dmg_log);
         if (!actor2->is_alive()) {
-          actor->award_xp(actor2->get_xp_worth());
+          this->award_xp_to(actor2->get_xp_worth(), actor);
         }
       }
       return true;
@@ -393,14 +409,12 @@ bool Game::handle_drop_consumable_input() {
     if (i < (int) player->consumable_inventory.size()) {
       this->interface_mode = MAIN_GAME;
       Consumable* item = &player->consumable_inventory[i];
-      //return this->use_consumable(item, player);
       player->remove_consumable(item);
       return true;
     }
   }
   return false;
 }
-
 
 // Returns true if the player used their turn; false otherwise.
 bool Game::handle_input() {
@@ -444,6 +458,8 @@ bool Game::handle_input() {
       if (player->get_y() == this->level_exit.y &&
           player->get_x() == this->level_exit.x) {
         if (this->level == FINAL_DLVL) {
+          string victory = "You grab the Orb! Victory!";
+          this->log.push_back(victory);
           this->game_over(true);
         } else {
           this->level++;
@@ -641,7 +657,7 @@ int Game::gold_amt(int level) {
 void Game::display_scene() {
   erase();
 
-  // Display tiles: (FOV TODO)
+  // Display tiles: 
   for (auto y = 0; y < MAP_HEIGHT; y++) {
     for (auto x = 0; x < MAP_WIDTH; x++) {
       Visibility vis = this->get_fov(y, x);
@@ -781,7 +797,6 @@ void Game::generate_map_room_accretion() {
   int total_map_space = MAP_HEIGHT * MAP_WIDTH;
   int used_map_space = 0;
 
-  //for (auto r = 0; r < 3; r++) { 
   for (;;) {
     // Generate room dimensions:
     int y = (int) (rng() % (MAP_HEIGHT - max_room_height - 2) + 1);
@@ -910,7 +925,6 @@ Coord Game::downhill_from(Coord coord) {
 bool Game::can_see(Actor* viewer, Coord goal) {
   Coord start = Coord{viewer->get_y(), viewer->get_x()};
   if (get_chebyshev_distance(start, goal) > VISION_RADIUS) {
-  // TODO: ^ actor modifier
     return false;
   }
   vector<Coord> sight_line = bresenham_line(start, goal);
@@ -923,6 +937,9 @@ bool Game::can_see(Actor* viewer, Coord goal) {
   }
   return true;
 }
+
+/* Dijkstra map based on Wikipedia article:
+     https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm  */
 
 void Game::dijkstra_map_distance(Coord start) {
   this->distance_map = vector<vector<int>>();
@@ -966,8 +983,5 @@ void Game::dijkstra_map_distance(Coord start) {
     }
   }
   this->distance_map_generated = true;
-  /* TODO: Backtrack to the origin for the shortest path(s). Currently
-           not set up to do that yet.  */
 }
-
 

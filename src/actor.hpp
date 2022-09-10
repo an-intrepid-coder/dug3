@@ -34,7 +34,9 @@ class Actor {
     Behavior get_behavior();
     int change_health(int a);
     int get_health();
+    void set_health(int amt);
     int get_max_health();
+    void set_max_health(int amt);
     string get_name();
     int get_movement_points();
     int change_movement_points(int amt);
@@ -48,9 +50,10 @@ class Actor {
     int get_gold();
     int change_gold(int amt);
     int get_level();
+    void set_level(int amt);
     int get_xp();
+    void set_xp(int amt);
     int get_xp_worth();
-    bool award_xp(int amt);
   private:
     string name;
     bool is_player;

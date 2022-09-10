@@ -27,17 +27,6 @@ Actor::Actor(bool is_player,
   this->bonuses = vector<Bonus>();
 }
 
-// Returns true if the actor leveled up:
-bool Actor::award_xp(int amt) {
-  this->xp = this->xp + amt;
-  if (this->xp >= XP_TO_LEVEL) {
-    this->level++;
-    this->xp = this->xp % XP_TO_LEVEL;
-    return true;
-  }
-  return false;
-}
-
 int Actor::get_dmg(std::mt19937_64 rng) { 
   int base_dmg = (int) (rng() % BASE_MAX_DMG + 1);
   int bonus_dmg = this->level - 1;
@@ -53,8 +42,24 @@ int Actor::get_level() {
   return this->level;
 }
 
+void Actor::set_health(int amt) {
+  this->health = amt;
+}
+
+void Actor::set_max_health(int amt) {
+  this->max_health = amt;
+}
+
+void Actor::set_level(int amt) {
+  this->level = amt;
+}
+
 int Actor::get_xp() {
   return this->xp;
+}
+
+void Actor::set_xp(int amt) {
+  this->xp = amt;
 }
 
 int Actor::get_xp_worth() {
@@ -80,7 +85,7 @@ int Actor::get_movement_points() {
 // Returns movements points after change:
 int Actor::change_movement_points(int amt) {
   this->movement_points = this->movement_points + amt;
-  // For now, max of 1: (more granularity down the road TODO)
+  // For now, max of 1: (more granularity down the road)
   if (this->movement_points > 1) {
     this->movement_points = 1;
   }
@@ -164,7 +169,7 @@ int Actor::add_consumable(Consumable item) {
 }
 
 // Returns total inventory size:
-int Actor::remove_consumable(Consumable* item) { // TODO
+int Actor::remove_consumable(Consumable* item) {
   int i = 0;
   for (auto it = this->consumable_inventory.begin(); it != this->consumable_inventory.end(); i++) {
     if (&this->consumable_inventory[i] == item) {
@@ -180,7 +185,7 @@ Actor Player(int y, int x) {
   return Actor(true, '@', y, x, 10, 0, NO_BEHAVIOR, "Player");
 }
 
-// TODO: Leveled versions.
+// TODO: Leveled versions of enemy actors:
 
 Actor Slime(int y, int x) {
   return Actor(false, 's', y, x, 3, 1, OBLIVIOUS_WANDERER, "Slime");

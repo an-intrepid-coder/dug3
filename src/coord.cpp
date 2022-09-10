@@ -60,6 +60,9 @@ int get_chebyshev_distance(Coord start, Coord other) {
   return max(abs(other.x - start.x), abs(other.y - start.y));
 }
 
+// Priority Queue is based on the one from this Coursera class:
+//  https://www.coursera.org/learn/data-structures/home/week/3
+
 PriorityQueueCoord::PriorityQueueCoord(int cap) {
   this->size = 0;
   this->cap = cap;

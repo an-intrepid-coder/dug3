@@ -2,9 +2,24 @@
 
 **Description:** A Roguelike. The player is to explore a dungeon under the town of Grindstone, and retrieve the Orb of Victory from the bottom. Very simple for now -- just the engine, mostly. Will grow much more complex as I go.
 
-**Installation:** (TODO)
+**Installation (Linux):** 
+  * Ensure you have `gcc` (if using the build script).
+  * Ensure you have `libncurses-dev` to compile against.
+  * (on Ubuntu and similar distributions using `apt` you can find the packages `build-essential` and `libncurses-dev` which will cover the requirements)
+  
+  * run `build.sh`
 
-**Controls:** (TODO)
+**To run the program:**
+  * run the executable `bin/dug`.
+
+**Controls:**
+  * *h/j/k/l/y/u/b/n/.* -- movement keys
+  * *Q* -- quit game
+  * *>* -- go downstairs or pick up Orb of Victory
+  * *i* -- open inventory
+
+  * *D* -- (debug cmd) overlay a distance map centered on the player
+  * *R* -- (debug cmd) reveal the map's terrain
 
 **Consumable Types:**
 

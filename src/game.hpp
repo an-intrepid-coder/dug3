@@ -79,6 +79,7 @@ class Game {
     bool toggle_displaying_distance_map();
     int roll_dx(int x);
     int roll_xdy(int x, int y);
+    bool award_xp_to(int amt, Actor* actor);
     int gold_amt(int level);
     void gold_check();
     void loot_check();

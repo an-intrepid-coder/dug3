@@ -17,6 +17,8 @@ int get_distance(Coord start, Coord other);
 int get_chebyshev_distance(Coord start, Coord other);
 
 // Custom Priority Queue that does some things the STL version doesn't:
+// Based on the Priority Queue from this Coursera class:
+//  https://www.coursera.org/learn/data-structures/home/week/3
 class PriorityQueueCoord {
   public:
     PriorityQueueCoord(int cap);

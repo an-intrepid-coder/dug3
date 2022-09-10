@@ -1,5 +1,3 @@
-// TODO: Rect intersections and so on
-
 #include "rect.hpp"
 
 bool rects_intersect(Rect a, Rect b) {

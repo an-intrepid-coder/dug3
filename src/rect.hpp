@@ -5,8 +5,6 @@
 
 using std::vector;
 
-// TODO: Rect class
-
 typedef struct {
   Coord top_left;
   int height;
