@@ -1,0 +1,89 @@
+Stuff to do in no particular order:
+~-~~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+- Drinking a potion should always use at least a turn.
+
+- Player damage bonus from level should be perhaps every 2nd or 3rd level.
+
+- Improve AI pathfinding around diagonals and hallway entrances.
+
+- Fix occasional enemies spawning in the walls.
+
+- Exception handling throughout the codebase.
+
+- More AI types.
+  * SENTRY: Like WAITING_HUNTER, but always returns to its spawn point
+            as soon as it loses sight of the player.
+  * PATROL: Moves between waypoints when player is not in sight; otherwise
+            chases player.
+
+- More monsters.
+  * Imp (cause poison or confusion on hit sometimes).
+  * Minotaur (does bonus damage, high HP, mini-boss).
+
+- More consumables & Bonus/Debuff types:
+  * Bonus damage resistance (x turns).
+  * Bonus xp (lump sum).
+  * Poison (dmg per turn for x turns).
+  * Amnesia (re-conceals the map).
+  * Teleport (random relocation).
+  * Confusion (random wander for x turns).
+  * Regeneration (heal 1-ish hp for x turns).
+    ** Make trolls regenerate.
+
+- Shift-move and auto-explore
+
+- Traps, Secret Doors, and Searching.
+
+- Manual seeding.
+
+- Automatic testing for game mechanics and level generation.
+
+- Vision radius as a modifier
+
+- Rect class instead of struct.
+
+- Coord class instead of struct.
+
+- Generic version of PriorityQueueCoord.
+
+- Persistent High Score List
+
+- Character Menu
+
+- BSP level gen.
+
+- Cellular Automata level gen.
+
+- Maze level gen.
+
+- Ranged combat && TAB targeting.
+
+- AI pathfinding accounts for other actors in the Dijkstra map.
+
+- Equipment System
+  * gear system
+  * equip and unequip
+  * equipment menu (similar to inventory menu)
+
+- Movement between levels in a persistent way
+  * Upstairs as well as downstairs movement and level generation.
+
+- Persistence / Save-states
+
+- Town level
+
+- Multi-page menus
+
+- Multiple races/classes
+
+- "Cinematic" uses of ncurses.
+
+- Bestiary system & Procedural Enemy Type Generation.
+
+- Graphical Tiles.
+
+- Genetic Algorithms. They could come in handy in several ways for a
+  Roguelike.
+
+(and much more eventually)
+

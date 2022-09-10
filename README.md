@@ -1,5 +1,7 @@
 # Dungeon Under Grindstone
 
+**Version:** 0.0.1
+
 **Description:** A Roguelike. The player is to explore a dungeon under the town of Grindstone, and retrieve the Orb of Victory from the bottom. Very simple for now -- just the engine, mostly, and a barebones game that just implements basic mechanics. Will grow much more complex as I go.
 
 **Installation (Linux):** 
