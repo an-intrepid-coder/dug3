@@ -188,7 +188,7 @@ Actor Player(int y, int x) {
 // TODO: Leveled versions of enemy actors:
 
 Actor Slime(int y, int x) {
-  return Actor(false, 's', y, x, 3, 1, OBLIVIOUS_WANDERER, "Slime");
+  return Actor(false, 's', y, x, 3, 4, OBLIVIOUS_WANDERER, "Slime");
 }
 
 Actor Fungoid(int y, int x) {

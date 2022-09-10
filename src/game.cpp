@@ -198,7 +198,7 @@ bool Game::award_xp_to(int amt, Actor* actor) {
     actor->set_level(actor->get_level() + 1);
     actor->set_xp(actor->get_xp() % XP_TO_LEVEL);
 
-    int bonus_hp = this->roll_dx(8);
+    int bonus_hp = this->roll_dx(PLAYER_HIT_DIE);
     actor->set_max_health(actor->get_max_health() + bonus_hp);
     actor->set_health(actor->get_health() + bonus_hp);
     return true;

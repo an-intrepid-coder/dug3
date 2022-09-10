@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+#define PLAYER_HIT_DIE 4 // for now
+
 #define MAP_HEIGHT 20
 #define MAP_WIDTH 64
 #define CONSOLE_ROWS 4
