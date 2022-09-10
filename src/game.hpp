@@ -11,6 +11,7 @@
 #include "terrain.hpp"
 #include "display.hpp"
 #include "rect.hpp"
+#include "bonus.hpp"
 
 using std::vector;
 using std::string;
@@ -71,9 +72,11 @@ class Game {
     bool handle_input();
     bool toggle_displaying_distance_map();
     int roll_dx(int x);
+    int roll_xdy(int x, int y);
     int gold_amt(int level);
     void gold_check();
     void loot_check();
+    void bonus_check();
     Consumable generate_random_consumable(int level);
     Terrain get_terrain(int y, int x);
     Visibility get_fov(int y, int x);

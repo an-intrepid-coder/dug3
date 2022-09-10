@@ -7,6 +7,7 @@ using std::string;
 
 typedef enum {
   MINOR_HEALING,
+  EXTRA_DMG_EFFECT,
 } ItemEffect;
 
 class Consumable {
@@ -23,6 +24,7 @@ class Consumable {
 };
 
 Consumable MinorHealingPotion();
+Consumable ExtraDamagePotion();
 
 class Gear { // TODO
   public:

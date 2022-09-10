@@ -30,6 +30,10 @@ Consumable MinorHealingPotion() {
   return Consumable(MINOR_HEALING, "Minor Healing Potion", 1);
 }
 
+Consumable ExtraDamagePotion() {
+  return Consumable(EXTRA_DMG_EFFECT, "Extra Damage Potion", 1);
+}
+
 string Gear::get_name() {
   return this->name;
 }

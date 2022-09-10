@@ -11,5 +11,9 @@
 
 #define VISION_RADIUS 9
 
+#define XP_TO_LEVEL 100
+
+#define BASE_MAX_DMG 3
+
 #endif
 

@@ -50,8 +50,8 @@ void Game::loot_check() {
 }
 
 void Game::generate_level(int level) { // TODO: More args
-  int gold_chance = 5;
-  int loot_chance = 5;
+  int gold_chance = 3;
+  int loot_chance = 4;
   // Tentative odds out of 1000 ^
 
   // Dungeon map setup:
@@ -95,8 +95,7 @@ void Game::generate_level(int level) { // TODO: More args
   player->set_x(spawn.x);
   if (level == 1) {
     player->add_consumable(MinorHealingPotion());
-    player->add_consumable(MinorHealingPotion());
-    player->add_consumable(MinorHealingPotion());
+    player->add_consumable(ExtraDamagePotion());
   }
 
   // Spawn some test enemies:
@@ -114,12 +113,27 @@ void Game::generate_level(int level) { // TODO: More args
 }
 
 Consumable Game::generate_random_consumable(int level) {
-  return MinorHealingPotion();
+  auto vec = vector<Consumable>();
+
+  vec.push_back(MinorHealingPotion());
+  vec.push_back(ExtraDamagePotion());
+
+  int i = (int) (this->rng() % vec.size()); 
+
+  return vec[i];
   // TODO: More items & level variation in this function
 }
 
 int Game::roll_dx(int x) {
   return (int) (this->rng() % x + 1);
+}
+
+int Game::roll_xdy(int x, int y) {
+  int k = 0;
+  for (auto i = 0; i < x; i++) {
+    k = k + this->roll_dx(y);
+  }
+  return k;
 }
 
 // Returns true if the item was successfully used:
@@ -128,7 +142,6 @@ bool Game::use_consumable(Consumable* item, Actor* user) {
   ItemEffect effect = item->get_effect();
   if (item->get_charges() > 0) {
     if (effect == MINOR_HEALING) {
-      // Tentative:
       int heal_amt = 10 + this->roll_dx(8);
       user->change_health(heal_amt);
       string log_str = user->get_name() + " healed for " + to_string(heal_amt);
@@ -137,6 +150,15 @@ bool Game::use_consumable(Consumable* item, Actor* user) {
         user->remove_consumable(item);
       }
       return true;
+    } else if (effect == EXTRA_DMG_EFFECT) {
+      int duration = this->roll_xdy(3, 6);
+      auto bonus = Bonus{EXTRA_DMG_BONUS, true, duration};
+      user->bonuses.push_back(bonus);
+      string log_str = user->get_name() + " drinks a " + item->get_name() + ".";
+      this->log.push_back(log_str);
+      if (item->change_charges(-1) == 0) {
+        user->remove_consumable(item);
+      }
     }
   }
   return false;
@@ -241,8 +263,7 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
         // NOTE: ^ For now, enemies don't attack each other. Will add a
         //       toggle for that soon (confused enemies, berserkers, etc.).
         actor != actor2) {
-      // TODO: Advanced combat -- all dmg is 1 for now
-      int dmg = 1;
+      int dmg = actor->get_dmg(this->rng);
       actor2->change_health(-dmg);
       Actor* player = this->get_player();
       if (can_see(player, actor_loc) && can_see(player, actor2_loc)) {
@@ -252,6 +273,9 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
                          " dmg! (" + to_string(actor2->get_health()) + 
                          "/" + to_string(actor2->get_max_health()) + ")";
         this->log.push_back(dmg_log);
+        if (!actor2->is_alive()) {
+          actor->award_xp(actor2->get_xp_worth());
+        }
       }
       return true;
     } else if (actor2_loc.y == ty &&
@@ -415,6 +439,7 @@ void Game::game_loop() {
         break;
       }
       this->clear_dead();
+      this->bonus_check();
       this->turn++;
       Coord coord = Coord{player->get_y(), player->get_x()};
       this->dijkstra_map_distance(coord);
@@ -425,6 +450,22 @@ void Game::game_loop() {
     std::this_thread::sleep_for(33ms);
   } 
   // TODO: End game and hi-score
+}
+
+void Game::bonus_check() {
+  for (auto actor : actors) { 
+    int i = 0;
+    for (auto it = actor.bonuses.begin(); it != actor.bonuses.end(); i++) {
+      if (actor.bonuses[i].temp) {
+        actor.bonuses[i].duration--;
+      }
+      if (actor.bonuses[i].temp && actor.bonuses[i].duration <= 0) {
+        actor.bonuses.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
 }
 
 Terrain Game::get_terrain(int y, int x) {
@@ -512,9 +553,8 @@ void Game::display_scene() {
     }
   }
 
-  // Display Actors: (FOV TODO)
+  // Display Actors:
   Actor* player = this->get_player();
-  //Coord player_loc = Coord{player->get_y(), player->get_x()};
   for (auto actor : this->actors) {
     Coord coord = Coord{actor.get_y(), actor.get_x()};
     if (can_see(player, coord)) {
@@ -540,6 +580,12 @@ void Game::display_scene() {
 
   string gold_str = "Gold: " + to_string(player->get_gold());
   mvaddstr(5, MAP_WIDTH, gold_str.c_str());
+
+  string lvl_str = "LVL: " + to_string(player->get_level());
+  mvaddstr(6, MAP_WIDTH, lvl_str.c_str());
+
+  string xp_str = "XP: " + to_string(player->get_xp());
+  mvaddstr(7, MAP_WIDTH, xp_str.c_str());
 
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {
@@ -652,7 +698,7 @@ void Game::generate_map_room_accretion() {
 void Game::run_behavior() {
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor = &this->actors[i];
-    if (actor->get_behavior() == NO_BEHAVIOR) {
+    if (actor->get_behavior() == NO_BEHAVIOR || !actor->is_alive()) {
       continue;
     }
     actor->change_movement_points(1);

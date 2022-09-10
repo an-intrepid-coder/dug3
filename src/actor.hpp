@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "bonus.hpp"
 #include "behavior.hpp"
 #include "item.hpp"
 
@@ -13,12 +14,16 @@ class Actor {
   public:
     vector<Consumable> consumable_inventory;
     vector<Gear> gear_inventory; 
+    vector<Bonus> bonuses;
+
     Actor(bool is_player, 
           char symbol,  
           int y, int x, 
           int max_health, 
+          int xp_worth,
           Behavior behavior,
           string name);
+    int get_dmg(std::mt19937_64 rng);
     bool get_is_player();
     char get_symbol();
     int get_y();
@@ -42,6 +47,10 @@ class Actor {
     int remove_gear(Gear* item); // TODO
     int get_gold();
     int change_gold(int amt);
+    int get_level();
+    int get_xp();
+    int get_xp_worth();
+    bool award_xp(int amt);
   private:
     string name;
     bool is_player;
@@ -51,6 +60,9 @@ class Actor {
     int x;
     int health;
     int max_health;
+    int level;
+    int xp;
+    int xp_worth;
     Behavior behavior;
     int movement_points;
 };

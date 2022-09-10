@@ -1,3 +1,4 @@
+#include <random>
 #include "actor.hpp"
 #include "constants.hpp"
 
@@ -5,10 +6,14 @@ Actor::Actor(bool is_player,
              char symbol, 
              int y, int x, 
              int max_health,
+             int xp_worth,
              Behavior behavior,
              string name) {
   this->is_player = is_player;
   this->gold = 0;
+  this->level = 1;
+  this->xp = 0;
+  this->xp_worth = xp_worth;
   this->symbol = symbol;
   this->y = y;
   this->x = x;
@@ -19,6 +24,41 @@ Actor::Actor(bool is_player,
   this->movement_points = 1;
   this->consumable_inventory = vector<Consumable>();
   this->gear_inventory = vector<Gear>();
+  this->bonuses = vector<Bonus>();
+}
+
+// Returns true if the actor leveled up:
+bool Actor::award_xp(int amt) {
+  this->xp = this->xp + amt;
+  if (this->xp >= XP_TO_LEVEL) {
+    this->level++;
+    this->xp = this->xp % XP_TO_LEVEL;
+    return true;
+  }
+  return false;
+}
+
+int Actor::get_dmg(std::mt19937_64 rng) { 
+  int base_dmg = (int) (rng() % BASE_MAX_DMG + 1);
+  int bonus_dmg = this->level - 1;
+  for (auto bonus : this->bonuses) {
+    if (bonus.type == EXTRA_DMG_BONUS) {
+      return (base_dmg + bonus_dmg) * 2;
+    }
+  }
+  return base_dmg + bonus_dmg;
+}
+
+int Actor::get_level() {
+  return this->level;
+}
+
+int Actor::get_xp() {
+  return this->xp;
+}
+
+int Actor::get_xp_worth() {
+  return this->xp_worth;
 }
 
 int Actor::get_gold() {
@@ -137,18 +177,22 @@ int Actor::remove_consumable(Consumable* item) { // TODO
 }
 
 Actor Player(int y, int x) {
-  return Actor(true, '@', y, x, 10, NO_BEHAVIOR, "Player");
+  return Actor(true, '@', y, x, 10, 0, NO_BEHAVIOR, "Player");
 }
 
 Actor Slime(int y, int x) {
-  return Actor(false, 's', y, x, 3, OBLIVIOUS_WANDERER, "Slime");
+  return Actor(false, 's', y, x, 3, 1, OBLIVIOUS_WANDERER, "Slime");
+}
+
+Actor Fungoid(int y, int x) {
+  return Actor(false, 'f', y, x, 3, 1, WAITING_HUNTER, "Fungoid");
 }
 
 Actor Bugbear(int y, int x) {
-  return Actor(false, 'B', y, x, 8, SEEKING_HUNTER, "Bugbear");
+  return Actor(false, 'B', y, x, 8, 25, SEEKING_HUNTER, "Bugbear");
 }
 
 Actor Troll(int y, int x) {
-  return Actor(false, 'T', y, x, 12, WAITING_HUNTER, "Troll");
+  return Actor(false, 'T', y, x, 6, 10, WAITING_HUNTER, "Troll");
 }
 
