@@ -23,5 +23,9 @@
 #define LOOT_CHANCE 50 
 #define GOLD_CHANCE 50 
 
+#define BONUS_DMG_LVL_FREQ 3
+
+#define EXTRA_DMG_POTION_AMT 4
+
 #endif
 

@@ -95,6 +95,7 @@ void Game::generate_level(int level) { // TODO: More args
   player->set_x(spawn.x);
   if (level == 1) {
     player->add_consumable(MinorHealingPotion());
+    player->add_consumable(ExtraDamagePotion());
   }
 
   // Spawn some enemies:
@@ -201,6 +202,12 @@ bool Game::award_xp_to(int amt, Actor* actor) {
     int bonus_hp = this->roll_dx(PLAYER_HIT_DIE);
     actor->set_max_health(actor->get_max_health() + bonus_hp);
     actor->set_health(actor->get_health() + bonus_hp);
+
+    // Award bonus damage at certain levels:
+    if (this->level % BONUS_DMG_LVL_FREQ == 0) {
+      actor->bonuses.push_back(Bonus(EXTRA_DMG_BONUS, false, -1, 1));
+    }
+
     return true;
   }
   return false;
@@ -235,13 +242,14 @@ bool Game::use_consumable(Consumable* item, Actor* user) {
       return true;
     } else if (effect == EXTRA_DMG_EFFECT) {
       int duration = this->roll_xdy(3, 6);
-      auto bonus = Bonus{EXTRA_DMG_BONUS, true, duration};
+      auto bonus = Bonus(EXTRA_DMG_BONUS, true, duration, EXTRA_DMG_POTION_AMT);
       user->bonuses.push_back(bonus);
       string log_str = user->get_name() + " drinks a " + item->get_name() + ".";
       this->log.push_back(log_str);
       if (item->change_charges(-1) == 0) {
         user->remove_consumable(item);
       }
+      return true;
     }
   }
   return false;
@@ -591,15 +599,14 @@ void Game::game_loop() {
 }
 
 void Game::bonus_check() {
-  for (auto actor : actors) { 
+  for (auto j = 0; j < (int) this->actors.size(); j++) {
+    Actor* actor = &this->actors[j];
     int i = 0;
-    for (auto it = actor.bonuses.begin(); it != actor.bonuses.end(); i++) {
-      if (actor.bonuses[i].temp) {
-        actor.bonuses[i].duration--;
-      }
-      if (actor.bonuses[i].temp && actor.bonuses[i].duration <= 0) {
-        actor.bonuses.erase(it);
+    for (auto it = actor->bonuses.begin(); it != actor->bonuses.end(); i++) {
+      if (actor->bonuses[i].get_duration() == 0) {
+        actor->bonuses.erase(it);
       } else {
+        actor->bonuses[i].decrement();
         ++it;
       }
     }
@@ -742,6 +749,16 @@ void Game::display_scene() {
 
   string xp_str = "XP: " + to_string(player->get_xp());
   mvaddstr(7, MAP_WIDTH, xp_str.c_str());
+
+  int bonus_dmg = 0;
+  for (auto i = 0; i < (int) player->bonuses.size(); i++) {
+    Bonus bonus = player->bonuses[i];
+    if (bonus.get_type() == EXTRA_DMG_BONUS) {
+      bonus_dmg = bonus_dmg + bonus.get_amt();
+    }
+  }
+  string dmg_str = "EXTRA DMG: " + to_string(bonus_dmg);
+  mvaddstr(8, MAP_WIDTH, dmg_str.c_str());
 
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {

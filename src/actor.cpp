@@ -28,14 +28,13 @@ Actor::Actor(bool is_player,
 }
 
 int Actor::get_dmg(std::mt19937_64 rng) { 
-  int base_dmg = (int) (rng() % BASE_MAX_DMG + 1);
-  int bonus_dmg = this->level - 1;
+  int dmg = (int) (rng() % BASE_MAX_DMG + 1);
   for (auto bonus : this->bonuses) {
-    if (bonus.type == EXTRA_DMG_BONUS) {
-      return (base_dmg + bonus_dmg) * 2;
+    if (bonus.get_type() == EXTRA_DMG_BONUS) {
+      dmg = dmg + bonus.get_amt();
     }
   }
-  return base_dmg + bonus_dmg;
+  return dmg;
 }
 
 int Actor::get_level() {
