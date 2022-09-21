@@ -397,13 +397,15 @@ bool Game::handle_consumable_inventory_input() {
   flushinp();
   auto input = getch();
   Actor* player = this->get_player();
-  if (input >= 97 || input <= 120) { // ASCII a - x
+  if (input >= 97 && input <= 120) { // ASCII a - x
     int i = input - 97;
-    if (i < (int) player->consumable_inventory.size()) {
+    if (i < (int) player->consumable_inventory.size() && i >= 0) {
       this->interface_mode = MAIN_GAME;
       Consumable* item = &player->consumable_inventory[i];
       return this->use_consumable(item, player);
-    }
+    } 
+  } else {
+    this->interface_mode = MAIN_GAME;
   }
   return false;
 }
@@ -412,14 +414,16 @@ bool Game::handle_drop_consumable_input() {
   flushinp();
   auto input = getch();
   Actor* player = this->get_player();
-  if (input >= 97 || input <= 120) { // ASCII a - x
+  if (input >= 97 && input <= 120) { // ASCII a - x
     int i = input - 97;
-    if (i < (int) player->consumable_inventory.size()) {
+    if (i < (int) player->consumable_inventory.size() && i >= 0) {
       this->interface_mode = MAIN_GAME;
       Consumable* item = &player->consumable_inventory[i];
       player->remove_consumable(item);
       return true;
     }
+  } else {
+    this->interface_mode = MAIN_GAME;
   }
   return false;
 }
