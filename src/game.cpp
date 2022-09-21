@@ -95,7 +95,7 @@ void Game::generate_level(int level) { // TODO: More args
   player->set_x(spawn.x);
   if (level == 1) {
     player->add_consumable(MinorHealingPotion());
-    player->add_consumable(ExtraDamagePotion());
+    player->add_consumable(MinorHealingPotion());
   }
 
   // Spawn some enemies:
@@ -193,6 +193,7 @@ Consumable Game::generate_random_consumable(int level) {
 }
 
 // Returns true if the actor leveled up:
+// TODO: BUG: This is not always awarding XP every third level
 bool Game::award_xp_to(int amt, Actor* actor) {
   actor->set_xp(actor->get_xp() + amt);
   if (actor->get_xp() >= XP_TO_LEVEL) {
@@ -204,7 +205,7 @@ bool Game::award_xp_to(int amt, Actor* actor) {
     actor->set_health(actor->get_health() + bonus_hp);
 
     // Award bonus damage at certain levels:
-    if (this->level % BONUS_DMG_LVL_FREQ == 0) {
+    if (actor->get_level() % BONUS_DMG_LVL_FREQ == 0) {
       actor->bonuses.push_back(Bonus(EXTRA_DMG_BONUS, false, -1, 1));
     }
 
@@ -853,6 +854,7 @@ void Game::generate_map_room_accretion() {
       Coord start = rect_center(room);
       Coord goal = rect_center(rooms[rooms.size() - 2]);
       vector<Coord> hall = bresenham_line(start, goal);
+      // TODO: Connect in other ways, such as L-bends.
       for (auto coord : hall) {
         Terrain terrain = this->terrain_map[coord.y][coord.x];
         if (terrain == WALL) {
