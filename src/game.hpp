@@ -2,10 +2,15 @@
 #define GAME_HPP
 
 #include <algorithm>
+#include <chrono>
+#include <iostream>
+#include <numeric>
+#include <queue>
 #include <random>
+#include <string>
+#include <thread>
 #include <time.h>
 #include <vector>
-#include <string>
 #include "actor.hpp"
 #include "coord.hpp"
 #include "terrain.hpp"
@@ -50,7 +55,7 @@ class Game {
     vector<vector<int>> distance_map;
     
     void display_title_screen();
-    void game_over(bool victory);
+    void display_game_over(bool victory);
     void generate_level(int level);
     void generate_test_map();
     void generate_map_room_accretion();
@@ -66,6 +71,7 @@ class Game {
     void gold_check();
     void loot_check();
     void bonus_check();
+    void clear_dead_check();
     Consumable generate_random_consumable();
     Terrain get_terrain(int y, int x);
     vector<Coord> get_all_terrain(Terrain type);
@@ -73,7 +79,6 @@ class Game {
     Coord get_spawn_loc();
     void run_behavior();
     Actor* get_player();
-    void clear_dead();
     void dijkstra_map_distance(Coord start);
     Coord downhill_from(Coord coord);
     bool can_see(Actor* viewer, Coord goal);

@@ -1,8 +1,8 @@
-Stuff to do in no particular order:
+Stuff to do (in no particular order):
 ~-~~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-- Drinking a potion should always use at least a turn.
+- AI for the player for automated playtesting (w/ stats).
 
-- Player damage bonus from level should be perhaps every 2nd or 3rd level.
+- Automatic testing in general.
 
 - Improve AI pathfinding around diagonals and hallway entrances.
 
@@ -35,8 +35,6 @@ Stuff to do in no particular order:
 - Traps, Secret Doors, and Searching.
 
 - Manual seeding.
-
-- Automatic testing for game mechanics and level generation.
 
 - Vision radius as a modifier
 
