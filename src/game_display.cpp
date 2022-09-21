@@ -41,7 +41,7 @@ void Game::display_title_screen() {
   getmaxyx(stdscr, max_y, max_x);
   erase();
   string title = "DUNGEON UNDER GRINDSTONE";
-  string version = "< version 0.0.2 >";
+  string version = "< version 0.0.3 >";
   string prompt = "...any key to continue...";
   mvaddstr(max_y / 2 - 2, max_x / 2 - (int) title.size() / 2, title.c_str());
   mvaddstr(max_y / 2, max_x / 2 - (int) version.size() / 2, version.c_str());
@@ -95,7 +95,9 @@ void Game::display_scene() {
               mvaddch(y, x, d);
             } else if (y == this->level_exit.y && x == this->level_exit.x) {
               if (this->level == FINAL_DLVL) {
-                mvaddch(y, x, '!');
+                attron(COLOR_PAIR(GREEN_ON_BLACK));
+                mvaddch(y, x, '&');
+                attroff(COLOR_PAIR(GREEN_ON_BLACK));
               } else {
                 mvaddch(y, x, '>');
               }

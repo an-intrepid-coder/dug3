@@ -1,5 +1,5 @@
 #include <iostream>
-#include "display.hpp"
+#include "ncurses_display.hpp"
 #include "game.hpp"
 
 struct Flags get_flags(int argc, char* argsv[]) {

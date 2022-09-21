@@ -14,7 +14,7 @@
 #include "actor.hpp"
 #include "coord.hpp"
 #include "terrain.hpp"
-#include "display.hpp"
+#include "ncurses_display.hpp"
 #include "rect.hpp"
 #include "bonus.hpp"
 #include "visibility.hpp"

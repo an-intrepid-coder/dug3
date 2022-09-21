@@ -2,7 +2,7 @@
 #include <cmath>
 #include <limits.h>
 #include "coord.hpp"
-#include "display.hpp"
+#include "ncurses_display.hpp"
 
 using std::abs;
 using std::max;

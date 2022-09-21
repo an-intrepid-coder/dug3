@@ -110,6 +110,12 @@ bool Game::handle_input() {
         }
       }
       break;
+    case 'F':
+      // Heal player to full health (debug cmd!):
+      if (this->flags.debug) {
+        player->set_health(player->get_max_health());
+      }
+      break;
     case 'i': // Inventory menu
       this->interface_mode = CONSUMABLE_INVENTORY;
       break;
