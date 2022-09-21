@@ -20,6 +20,7 @@ int get_chebyshev_distance(Coord start, Coord other);
 // Based on the Priority Queue from this Coursera class:
 //  https://www.coursera.org/learn/data-structures/home/week/3
 class PriorityQueueCoord {
+  // TODO: Generic version of this.
   public:
     PriorityQueueCoord(int cap);
     int get_size();

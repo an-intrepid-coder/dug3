@@ -8,7 +8,6 @@ using std::string;
 typedef enum {
   MINOR_HEALING,
   EXTRA_DMG_EFFECT,
-  ORB_OF_VICTORY,
 } ItemEffect;
 
 class Consumable {

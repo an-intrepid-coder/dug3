@@ -12,32 +12,15 @@
 #include "display.hpp"
 #include "rect.hpp"
 #include "bonus.hpp"
+#include "visibility.hpp"
+#include "flags.hpp"
+#include "interface_mode.hpp"
+#include "direction_type.hpp"
 
 using std::vector;
 using std::string;
 
-struct Flags { int debug; }; // More to come!
-
-typedef enum {
-  UNEXPLORED,
-  EXPLORED,
-  VISIBLE
-} Visibility;
-
-typedef enum {
-  MAIN_GAME,
-  CONSUMABLE_INVENTORY,
-  DROP_CONSUMABLE,
-  // TODO: Many more!
-} InterfaceMode;
-
-typedef enum {
-  VERTICAL,
-  HORIZONTAL
-} DirectionType;
-
 // Integrated early game object for now. No separate scene stuff yet.
-
 class Game {
   public:
     Game(Flags flags);
@@ -54,11 +37,10 @@ class Game {
     vector<Actor> actors;
     vector<string> log;
 
+    // Map stuff:
     vector<vector<bool>> loot_map;
     vector<vector<bool>> gold_map;
     // TODO: Gear map
-
-    // Map stuff
     bool terrain_map_generated;
     Coord level_exit;
     vector<vector<Terrain>> terrain_map;
@@ -67,7 +49,7 @@ class Game {
     bool displaying_distance_map;
     vector<vector<int>> distance_map;
     
-    void title_screen();
+    void display_title_screen();
     void game_over(bool victory);
     void generate_level(int level);
     void generate_test_map();
@@ -84,7 +66,7 @@ class Game {
     void gold_check();
     void loot_check();
     void bonus_check();
-    Consumable generate_random_consumable(int level);
+    Consumable generate_random_consumable();
     Terrain get_terrain(int y, int x);
     vector<Coord> get_all_terrain(Terrain type);
     Visibility get_fov(int y, int x);

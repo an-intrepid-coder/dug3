@@ -41,7 +41,7 @@ void Game::gold_check() {
 void Game::loot_check() {
   Actor* player = this->get_player();
   if (this->loot_map[player->get_y()][player->get_x()]) {
-    Consumable loot = generate_random_consumable(this->level);
+    Consumable loot = generate_random_consumable();
 
     string log_str = player->get_name() + " picked up " + loot.get_name();
     this->log.push_back(log_str);
@@ -180,7 +180,7 @@ void Game::generate_level(int level) { // TODO: More args
   this->calculate_fov();
 }
 
-Consumable Game::generate_random_consumable(int level) {
+Consumable Game::generate_random_consumable() {
   auto vec = vector<Consumable>();
 
   vec.push_back(MinorHealingPotion());
@@ -189,11 +189,9 @@ Consumable Game::generate_random_consumable(int level) {
   int i = (int) (this->rng() % vec.size()); 
 
   return vec[i];
-  // TODO: More items & level variation in this function
 }
 
 // Returns true if the actor leveled up:
-// TODO: BUG: This is not always awarding XP every third level
 bool Game::award_xp_to(int amt, Actor* actor) {
   actor->set_xp(actor->get_xp() + amt);
   if (actor->get_xp() >= XP_TO_LEVEL) {
@@ -536,13 +534,13 @@ void Game::game_over(bool victory) {
   exit(0);
 }
 
-void Game::title_screen() {
+void Game::display_title_screen() {
   int max_y;
   int max_x;
   getmaxyx(stdscr, max_y, max_x);
   erase();
   string title = "DUNGEON UNDER GRINDSTONE";
-  string version = "< version 0.0.1 >";
+  string version = "< version 0.0.2 >";
   string prompt = "...any key to continue...";
   mvaddstr(max_y / 2 - 2, max_x / 2 - (int) title.size() / 2, title.c_str());
   mvaddstr(max_y / 2, max_x / 2 - (int) version.size() / 2, version.c_str());
@@ -551,7 +549,7 @@ void Game::title_screen() {
 }
 
 void Game::game_loop() {
-  this->title_screen();
+  this->display_title_screen();
   getch();
   for (;;) {
     Actor* player = this->get_player();

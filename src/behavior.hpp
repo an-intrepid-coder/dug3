@@ -8,6 +8,5 @@ typedef enum {
   WAITING_HUNTER
 } Behavior;
 
-
 #endif 
 
