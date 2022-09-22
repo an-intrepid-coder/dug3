@@ -23,16 +23,26 @@ Game::Game(Flags flags) {
 bool Game::award_xp_to(int amt, Actor* actor) {
   actor->set_xp(actor->get_xp() + amt);
   if (actor->get_xp() >= XP_TO_LEVEL) {
+    string log_str = actor->get_name() + " leveled up!";
+
     actor->set_level(actor->get_level() + 1);
     actor->set_xp(actor->get_xp() % XP_TO_LEVEL);
 
     int bonus_hp = this->roll_dx(PLAYER_HIT_DIE);
+
+    log_str = log_str + "(+" + to_string(bonus_hp) + " HP)";
+
     actor->set_max_health(actor->get_max_health() + bonus_hp);
     actor->set_health(actor->get_health() + bonus_hp);
 
     // Award bonus damage at certain levels:
     if (actor->get_level() % BONUS_DMG_LVL_FREQ == 0) {
       actor->bonuses.push_back(Bonus(EXTRA_DMG_BONUS, false, -1, 1));
+      log_str = log_str + "(+1 DMG)";
+    }
+
+    if (actor->get_is_player()) {
+      this->log.push_back(log_str);
     }
 
     return true;
