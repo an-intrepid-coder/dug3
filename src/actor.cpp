@@ -195,10 +195,14 @@ Actor Fungoid(int y, int x) {
 }
 
 Actor Bugbear(int y, int x) {
-  return Actor(false, 'B', y, x, 10, 25, SEEKING_HUNTER, "Bugbear");
+  Actor actor = Actor(false, 'B', y, x, 10, 25, SEEKING_HUNTER, "Bugbear");
+  actor.bonuses.push_back(Bonus(EXTRA_DMG_BONUS, false, -1, 3));
+  return actor;
 }
 
 Actor Troll(int y, int x) {
-  return Actor(false, 'T', y, x, 6, 10, WAITING_HUNTER, "Troll");
+  Actor actor = Actor(false, 'T', y, x, 6, 10, WAITING_HUNTER, "Troll");
+  actor.bonuses.push_back(Bonus(EXTRA_DMG_BONUS, false, -1, 2));
+  return actor;
 }
 

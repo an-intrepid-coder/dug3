@@ -1,6 +1,6 @@
 # Dungeon Under Grindstone
 
-**Version:** 0.0.2
+**Version:** 0.0.3
 
 **Description:** A Roguelike. The player is to explore a dungeon under the town of Grindstone, and retrieve the Orb of Victory from the bottom. Very simple for now -- just the engine, mostly, and a barebones game that just implements basic mechanics. Will grow much more complex as I go.
 
@@ -20,6 +20,7 @@
   * *i* -- open inventory
   * *D* -- (debug cmd) overlay a distance map centered on the player
   * *R* -- (debug cmd) reveal the map's terrain
+  * *F* -- (debug cmd) heal player to full health
 
 **Consumable Types:**
 * Minor Healing Potion: Heals 10+d8 hp.
@@ -28,8 +29,8 @@
 **Monster Types:**
 * Slime: Low health. No pathfinding (random movement). Can hit player.
 * Fungoid: Low health. Hunts player if it can see the player.
-* Troll: High health. Hunts player if it can see the player.
-* Bugbear: High health. Hunts player by smell, unerringly.
+* Troll: High health. High damage. Hunts player if it can see the player.
+* Bugbear: High health. High damage. Hunts player by smell, unerringly.
 
 **Player Abilities:**
 * Extra dmg every third level.
