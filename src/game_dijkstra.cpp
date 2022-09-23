@@ -46,31 +46,45 @@ void Game::dijkstra_map_distance(Coord start) {
   this->distance_map_generated = true;
 }
 
+/* Grabs a random coordinate that is "down hill" from the
+   given starting coordinate on the Dijkstra-generated
+   distance map.  */
 Coord Game::downhill_from(Coord coord) {
-  // TODO: Account for actors in the way
-  vector<Coord> vec = get_neighbors(coord);
-  vector<int> vec2 = vector<int>();
-  for (auto coord : vec) {
-    vec2.push_back(this->distance_map[coord.y][coord.x]);
+
+  // Get the distance to all neighbor coords:
+  vector<Coord> neighbors = get_neighbors(coord);
+  vector<int> distances = vector<int>();
+  for (auto coord : neighbors) {
+    distances.push_back(this->distance_map[coord.y][coord.x]);
   }
+
+  // Find the lowest distance value among neighbor coords:
   int low = INT_MAX;
-  for (auto i = 0; i < (int) vec2.size(); i++) {
-    if (vec2[i] < low) {
-      low = vec2[i];
+  for (auto i = 0; i < (int) distances.size(); i++) {
+    if (distances[i] < low) {
+      low = distances[i];
     }
   }
-  vector<Coord> vec3 = vector<Coord>();
-  for (auto i = 0; i < (int) vec2.size(); i++) {
-    if (vec2[i] == low) {
-      vec3.push_back(vec[i]);
+
+  /* Push all coords which are equal to the lowest-distance
+     neighbor in to a new vector:  */
+  vector<Coord> candidates = vector<Coord>();
+  for (auto i = 0; i < (int) distances.size(); i++) {
+    Coord coord = neighbors[i];
+    Terrain terrain = this->get_terrain(coord.y, coord.x);
+    if (distances[i] == low && terrain == FLOOR) {
+      candidates.push_back(neighbors[i]);
     }
   }
-  int j = (int) (this->rng() % vec3.size());
-  Coord dest = vec3[j];
-  if (vec3.empty()) {
+
+  if (candidates.empty()) {
+    // This block can occur if the actor is, for example, surrounded by walls.
     return coord;
   }
+
+  // Return a random coord from the final vec:
+  int j = (int) (this->rng() % candidates.size());
+  Coord dest = candidates[j];
   return dest;
 }
-
 
