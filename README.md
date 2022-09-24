@@ -11,7 +11,7 @@
   * run `build.sh`
 
 **To run the program:**
-  * run the executable `bin/dug`.
+  * run the executable `dug`.
 
 **Controls:**
   * *h/j/k/l/y/u/b/n/.* -- movement keys
