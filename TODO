@@ -1,12 +1,14 @@
 Stuff to do (in no particular order):
 ~-~~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+- Nameable player.
+
 - AI for the player for automated playtesting (w/ stats).
+
+- AI pathfinding accounts for other actors in the Dijkstra map.
 
 - Automatic testing in general.
 
-- Improve AI pathfinding around diagonals and hallway entrances.
-
-- Fix occasional enemies spawning in the walls.
+- Makefiles in order to speed up recompilation.
 
 - Exception handling throughout the codebase.
 
@@ -15,6 +17,8 @@ Stuff to do (in no particular order):
             as soon as it loses sight of the player.
   * PATROL: Moves between waypoints when player is not in sight; otherwise
             chases player.
+  ^-- Both of the above require implementing a path memory property for
+      Actors.
 
 - More monsters.
   * Imp (cause poison or confusion on hit sometimes).
@@ -55,8 +59,6 @@ Stuff to do (in no particular order):
 - Maze level gen.
 
 - Ranged combat && TAB targeting.
-
-- AI pathfinding accounts for other actors in the Dijkstra map.
 
 - Equipment System
   * gear system

@@ -9,16 +9,16 @@ void Game::display_game_over(bool victory) {
   uninit_curses();
   Actor* player = this->get_player();
   if (victory) {
-    cout << "You have won! The Orb is yours!" << endl;
+    cout << "\nYou have won! The Orb is yours!" << endl;
   } else {
-    cout << "You have fallen in the dungeon! Game Over." << endl;
+    cout << "\nYou have fallen in the dungeon! Game Over." << endl;
   }
   cout << "You were on dungeon level " << this->level << endl;
   cout << "It was turn " << this->turn << endl;
   cout << "Your name was " << player->get_name() << endl;
   cout << "You had " << player->get_gold() << " gold!" << endl;
   cout << "You were level " << player->get_level() << endl;
-  cout << "Last ten console messages:" << endl;
+  cout << "\nLast ten console messages:" << endl;
   for (auto i = 0; i < 10; i++) {
     int j = (int) this->log.size() - 1 - i;
     if (j >= 0 && j < (int) this->log.size()) {

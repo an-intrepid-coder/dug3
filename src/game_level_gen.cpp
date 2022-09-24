@@ -1,6 +1,9 @@
 #include "game.hpp"
 
 void Game::generate_level(int level) { // TODO: More args
+  // Remove any actors (minus the player) from the previous level:
+  this->clear_actors();
+
   // Dungeon map setup:
   this->terrain_map_generated = false;
   this->distance_map = vector<vector<int>>();
@@ -125,6 +128,7 @@ void Game::generate_level(int level) { // TODO: More args
   // Finalize map setup:
   this->dijkstra_map_distance(spawn);
   this->calculate_fov();
+
 }
 
 Consumable Game::generate_random_consumable() {

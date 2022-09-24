@@ -22,9 +22,6 @@
 #include "interface_mode.hpp"
 #include "direction_type.hpp"
 
-using std::vector;
-using std::string;
-
 // Integrated early game object for now. No separate scene stuff yet.
 class Game {
   public:
@@ -71,6 +68,7 @@ class Game {
     void gold_check();
     void loot_check();
     void bonus_check();
+    void clear_actors();
     void clear_dead_check();
     Consumable generate_random_consumable();
     Terrain get_terrain(int y, int x);

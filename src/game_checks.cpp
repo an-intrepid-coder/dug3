@@ -1,12 +1,29 @@
 #include "game.hpp"
 
+#include "ncurses_display.hpp"
+
 using std::string;
 using std::to_string;
+
+using std::cout;
+using std::endl;
 
 void Game::clear_dead_check() {
   int i = 0;
   for (auto it = this->actors.begin(); it != this->actors.end(); i++) {
     if (!this->actors[i].is_alive() && !this->actors[i].get_is_player()) {
+      this->actors.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+// Clears all actors (minus the player):
+void Game::clear_actors() {
+  int i = 0;
+  for (auto it = this->actors.begin(); it != this->actors.end(); i++) {
+    if (!this->actors[i].get_is_player()) {
       this->actors.erase(it);
     } else {
       ++it;
