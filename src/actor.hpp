@@ -54,6 +54,8 @@ class Actor {
     int get_xp();
     void set_xp(int amt);
     int get_xp_worth();
+    int get_vision_radius();
+    void set_vision_radius(int x);
   private:
     string name;
     bool is_player;
@@ -68,6 +70,7 @@ class Actor {
     int xp_worth;
     Behavior behavior;
     int movement_points;
+    int vision_radius;
 };
 
 Actor Player(int y, int x, string name);

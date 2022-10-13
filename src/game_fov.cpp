@@ -16,8 +16,9 @@ void Game::calculate_fov() {
 
   Actor* player = this->get_player();
   Coord player_loc = Coord{player->get_y(), player->get_x()};
-  for (auto y = player_loc.y - VISION_RADIUS; y <= player_loc.y + VISION_RADIUS; y++) {
-    for (auto x = player_loc.x - VISION_RADIUS; x <= player_loc.x + VISION_RADIUS; x++) {
+  int vis = player->get_vision_radius();
+  for (auto y = player_loc.y - vis; y <= player_loc.y + vis; y++) {
+    for (auto x = player_loc.x - vis; x <= player_loc.x + vis; x++) {
       if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH) {
         Coord coord = Coord{y, x};
         if (can_see(player, coord)) {
@@ -30,7 +31,7 @@ void Game::calculate_fov() {
 
 bool Game::can_see(Actor* viewer, Coord goal) {
   Coord start = Coord{viewer->get_y(), viewer->get_x()};
-  if (get_chebyshev_distance(start, goal) > VISION_RADIUS) {
+  if (get_chebyshev_distance(start, goal) > viewer->get_vision_radius()) {
     return false;
   }
   vector<Coord> sight_line = bresenham_line(start, goal);

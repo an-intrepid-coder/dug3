@@ -25,6 +25,15 @@ Actor::Actor(bool is_player,
   this->consumable_inventory = vector<Consumable>();
   this->gear_inventory = vector<Gear>();
   this->bonuses = vector<Bonus>();
+  this->vision_radius = VISION_RADIUS;
+}
+
+int Actor::get_vision_radius() {
+  return this->vision_radius;
+}
+
+void Actor::set_vision_radius(int amt) {
+  this->vision_radius = amt;
 }
 
 int Actor::get_dmg(std::mt19937_64 rng) { 
