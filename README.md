@@ -1,6 +1,6 @@
 # Dungeon Under Grindstone
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 
 **Description:** A Roguelike. The player is to explore a dungeon under the town of Grindstone, and retrieve the Orb of Victory from the bottom. Very simple for now -- just the engine, mostly, and a barebones game that just implements basic mechanics. Will grow much more complex as I go.
 
@@ -12,6 +12,10 @@
 
 **To run the program:**
   * run the executable `dug`.
+
+**Command-line options:**
+  * `--debug` : Enables debug commands during gameplay.
+  * `--name <string>` : Names the player `<string>`. 
 
 **Controls:**
   * *h/j/k/l/y/u/b/n/.* -- movement keys

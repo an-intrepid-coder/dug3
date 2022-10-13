@@ -1,17 +1,5 @@
 Stuff to do (in no particular order):
 ~-~~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-- Nameable player.
-
-- AI for the player for automated playtesting (w/ stats).
-
-- AI pathfinding accounts for other actors in the Dijkstra map.
-
-- Automatic testing in general.
-
-- Makefiles in order to speed up recompilation.
-
-- Exception handling throughout the codebase.
-
 - More AI types.
   * SENTRY: Like WAITING_HUNTER, but always returns to its spawn point
             as soon as it loses sight of the player.
@@ -19,6 +7,16 @@ Stuff to do (in no particular order):
             chases player.
   ^-- Both of the above require implementing a path memory property for
       Actors.
+
+- Shift-move and auto-explore
+
+- AI for the player for automated playtesting (w/ stats).
+
+- Automatic testing in general.
+
+- Makefiles in order to speed up recompilation.
+
+- Exception handling throughout the codebase.
 
 - More monsters.
   * Imp (cause poison or confusion on hit sometimes).
@@ -34,17 +32,13 @@ Stuff to do (in no particular order):
   * Regeneration (heal 1-ish hp for x turns).
     ** Make trolls regenerate.
 
-- Shift-move and auto-explore
+- Rect class instead of struct.
+
+- Coord class instead of struct.
 
 - Traps, Secret Doors, and Searching.
 
 - Manual seeding.
-
-- Vision radius as a modifier
-
-- Rect class instead of struct.
-
-- Coord class instead of struct.
 
 - Generic version of PriorityQueueCoord.
 
