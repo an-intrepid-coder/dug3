@@ -7,6 +7,12 @@
 using std::abs;
 using std::max;
 
+bool is_neighbor(Coord a, Coord b) {
+  return (a.x != b.x && a.y != b.y) &&
+         abs(a.x - b.x) <= 1 &&
+         abs(a.y - b.y) <= 1;
+}
+
 /* Returns a vector of coordinates representing a Bresenham line
    from the start Coord to the end Coord.  */
 vector<Coord> bresenham_line(Coord start, Coord goal) {

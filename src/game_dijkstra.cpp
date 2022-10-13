@@ -55,7 +55,18 @@ Coord Game::downhill_from(Coord coord) {
   vector<Coord> neighbors = get_neighbors(coord);
   vector<int> distances = vector<int>();
   for (auto coord : neighbors) {
-    distances.push_back(this->distance_map[coord.y][coord.x]);
+    // Set neighboring tiles that contain other actors to a high value:
+    bool occupied = false;
+    for (auto actor : this->actors) {
+      if (is_neighbor(Coord{actor.get_y(), actor.get_x()}, coord) &&
+          !actor.get_is_player()) {
+        distances.push_back(INT_MAX);
+        occupied = true;
+      }
+    }
+    if (!occupied) {
+      distances.push_back(this->distance_map[coord.y][coord.x]);
+    }
   }
 
   // Find the lowest distance value among neighbor coords:

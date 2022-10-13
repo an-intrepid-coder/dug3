@@ -3,12 +3,14 @@
 void Game::run_behavior() {
   for (auto i = 0; i < (int) this->actors.size(); i++) {
     Actor* actor = &this->actors[i];
+    Coord coord = Coord{actor->get_y(), actor->get_x()};
     if (actor->get_behavior() == NO_BEHAVIOR || !actor->is_alive()) {
       continue;
     }
     actor->change_movement_points(1);
     if (actor->get_movement_points() == 1) {
       Actor* player = this->get_player();
+      Coord pcoord = Coord{player->get_y(), player->get_x()};
       Behavior behavior = actor->get_behavior();
       if (behavior == OBLIVIOUS_WANDERER) {
         // Wander in a random direction, with no regard for the
@@ -25,19 +27,29 @@ void Game::run_behavior() {
       } else if (behavior == SEEKING_HUNTER) {
         /* Rolls "down-hill" towards the player, regardless of 
            FOV.  */
-        Coord coord = Coord{actor->get_y(), actor->get_x()};
-        Coord dest = this->downhill_from(coord);
-        int dy = dest.y - actor->get_y();
-        int dx = dest.x - actor->get_x();
-        this->move_actor(actor, dy, dx);
-      } else if (behavior == WAITING_HUNTER) {
-        Coord player_loc = Coord{player->get_y(), player->get_x()};
-        if (can_see(actor, player_loc)) {
-          Coord coord = Coord{actor->get_y(), actor->get_x()};
-          Coord dest = this->downhill_from(coord);
-          int dy = dest.y - actor->get_y();
-          int dx = dest.x - actor->get_x();
+        if (is_neighbor(pcoord, coord)) {
+          int dy = pcoord.y - coord.y;
+          int dx = pcoord.x - coord.x;
           this->move_actor(actor, dy, dx);
+        } else {
+          Coord dest = this->downhill_from(coord);
+          int dy = dest.y - coord.y;
+          int dx = dest.x - coord.x;
+          this->move_actor(actor, dy, dx);
+        }
+      } else if (behavior == WAITING_HUNTER) {
+        if (can_see(actor, pcoord)) {
+          if (is_neighbor(pcoord, coord)) {
+            int dy = pcoord.y - coord.y;
+            int dx = pcoord.x - coord.x;
+            this->move_actor(actor, dy, dx);
+          } else {
+            Coord coord = Coord{actor->get_y(), actor->get_x()};
+            Coord dest = this->downhill_from(coord);
+            int dy = dest.y - coord.y;
+            int dx = dest.x - coord.x;
+            this->move_actor(actor, dy, dx);
+          }
         }
       }
       // TODO: Other behavior types

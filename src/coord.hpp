@@ -11,6 +11,7 @@ typedef struct {
   int x;
 } Coord;
 
+bool is_neighbor(Coord a, Coord b);
 vector<Coord> bresenham_line(Coord start, Coord goal);
 vector<Coord> get_neighbors(Coord coord);
 int get_distance(Coord start, Coord other);
