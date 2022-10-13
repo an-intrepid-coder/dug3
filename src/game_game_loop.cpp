@@ -5,7 +5,8 @@ using namespace std::chrono_literals;
 void Game::game_loop() {
   this->display_title_screen();
   getch();
-  for (;;) {
+
+  for (;;) { // Game loop:
     Actor* player = this->get_player();
     InterfaceMode mode = this->interface_mode;
 

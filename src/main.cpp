@@ -3,13 +3,16 @@
 #include "game.hpp"
 
 struct Flags get_flags(int argc, char* argsv[]) {
-    struct Flags flags{false};
+    struct Flags flags{false, "Player"};
 
     string debug = "--debug";
+    string name = "--name";
     for (int arg = 1; arg < argc; arg++) {
         if (argsv[arg] == debug) {
           flags.debug = true;
-        } 
+        } else if (argsv[arg] == name && argc > arg + 1) {
+          flags.pname = argsv[arg + 1];
+        }
     }
 
     return flags;

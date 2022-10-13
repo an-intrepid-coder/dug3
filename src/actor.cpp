@@ -180,8 +180,8 @@ int Actor::remove_consumable(Consumable* item) {
   return (int) this->consumable_inventory.size();
 }
 
-Actor Player(int y, int x) {
-  return Actor(true, '@', y, x, 10, 0, NO_BEHAVIOR, "Player");
+Actor Player(int y, int x, string name) {
+  return Actor(true, '@', y, x, 10, 0, NO_BEHAVIOR, name);
 }
 
 // TODO: Leveled versions of enemy actors:

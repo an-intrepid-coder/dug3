@@ -70,7 +70,7 @@ class Actor {
     int movement_points;
 };
 
-Actor Player(int y, int x);
+Actor Player(int y, int x, string name);
 Actor Slime(int y, int x);
 Actor Fungoid(int y, int x);
 Actor Bugbear(int y, int x);

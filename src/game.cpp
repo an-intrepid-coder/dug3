@@ -15,7 +15,7 @@ Game::Game(Flags flags) {
   this->rng = std::mt19937_64();
   this->rng.seed(time(NULL)); 
   this->actors = vector<Actor>();
-  this->actors.push_back(Player(0, 0));
+  this->actors.push_back(Player(0, 0, flags.pname));
   this->generate_level(1);
 }
 
