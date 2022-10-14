@@ -21,6 +21,7 @@
 #include "flags.hpp"
 #include "interface_mode.hpp"
 #include "direction_type.hpp"
+#include "auto_type.hpp"
 
 // Integrated early game object for now. No separate scene stuff yet.
 class Game {
@@ -35,6 +36,8 @@ class Game {
     std::mt19937_64 rng;
     unsigned long int turn; 
     int level;
+
+    AutoType auto_type;
 
     vector<Actor> actors;
     vector<string> log;
@@ -69,6 +72,7 @@ class Game {
     void loot_check();
     void bonus_check();
     void clear_actors();
+    void auto_check(bool move_result);
     void clear_dead_check();
     Consumable generate_random_consumable();
     Terrain get_terrain(int y, int x);
@@ -84,6 +88,7 @@ class Game {
     bool use_consumable(Consumable* item, Actor* user);
     bool handle_consumable_inventory_input();
     bool handle_drop_consumable_input();
+    string get_auto_str();
 };
 
 #endif

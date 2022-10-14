@@ -8,6 +8,41 @@ using std::to_string;
 using std::cout;
 using std::endl;
 
+void Game::auto_check(bool move_result) {
+  Actor* player = this->get_player();
+
+  switch (this->auto_type) {
+    case AUTO_NONE:
+      return;
+      break;
+    case AUTO_H:
+    case AUTO_J:
+    case AUTO_K:
+    case AUTO_L:
+    case AUTO_Y:
+    case AUTO_U:
+    case AUTO_B:
+    case AUTO_N:
+      if (!move_result) {
+        this->auto_type = AUTO_NONE;
+        return;
+      }
+      // Check if player can see any monsters.
+      for (auto actor : this->actors) {
+        Coord coord = Coord{actor.get_y(), actor.get_x()};
+        if (!actor.get_is_player() &&
+            this->can_see(player, coord)) {
+          this->auto_type = AUTO_NONE;
+          return;
+        }
+      }
+      break;
+    // TODO: AUTO_EXPLORE
+    default:
+      break;
+  }
+}
+
 void Game::clear_dead_check() {
   int i = 0;
   for (auto it = this->actors.begin(); it != this->actors.end(); i++) {

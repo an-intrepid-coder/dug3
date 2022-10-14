@@ -167,6 +167,9 @@ void Game::display_scene() {
   string dmg_str = "EXTRA DMG: " + to_string(bonus_dmg);
   mvaddstr(8, MAP_WIDTH, dmg_str.c_str());
 
+  string auto_str = "AUTO: " + this->get_auto_str();
+  mvaddstr(9, MAP_WIDTH, auto_str.c_str());
+
   // Console stuff:
   for (auto i = 0; i < CONSOLE_ROWS; i++) {
     int j = (int) this->log.size() - 1 - i;

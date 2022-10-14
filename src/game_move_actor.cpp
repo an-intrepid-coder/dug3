@@ -9,6 +9,9 @@ bool Game::move_actor(Actor* actor, int dy, int dx) {
   int ty = actor->get_y() + dy;
   int tx = actor->get_x() + dx;
   Terrain terrain = this->get_terrain(ty, tx);
+  if (terrain == WALL) {
+    return false;
+  }
   bool blocked = false;
   // Check for actors and initiate combat if needed:
   for (auto i = 0; i < (int) this->actors.size(); i++) {

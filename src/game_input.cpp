@@ -39,7 +39,40 @@ bool Game::handle_drop_consumable_input() {
 // Returns true if the player used their turn; false otherwise.
 bool Game::handle_input() {
   flushinp();
-  auto input = getch();
+  int input; 
+
+  switch(this->auto_type) {
+    case AUTO_NONE:
+      input = getch();
+      break;
+    case AUTO_H:
+      input = 'h'; // TODO: Test this line
+      break;
+    case AUTO_J:
+      input = 'j';
+      break;
+    case AUTO_K:
+      input = 'k';
+      break;
+    case AUTO_L:
+      input = 'l';
+      break;
+    case AUTO_Y:
+      input = 'y';
+      break;
+    case AUTO_U:
+      input = 'u';
+      break;
+    case AUTO_B:
+      input = 'b';
+      break;
+    case AUTO_N:
+      input = 'n';
+      break;
+    default:
+      break;
+  }
+
   Actor* player = this->get_player();
   switch(input) {
     case 'Q': // Quit
@@ -50,25 +83,57 @@ bool Game::handle_input() {
     case 'h':
       return this->move_actor(player, 0, -1);
       break;
+    case 'H':
+      this->auto_type = AUTO_H;
+      return this->move_actor(player, 0, -1);
+      break;
     case 'j':
+      return this->move_actor(player, 1, 0);
+      break;
+    case 'J':
+      this->auto_type = AUTO_J;
       return this->move_actor(player, 1, 0);
       break;
     case 'k':
       return this->move_actor(player, -1, 0);
       break;
+    case 'K':
+      this->auto_type = AUTO_K;
+      return this->move_actor(player, -1, 0);
+      break;
     case 'l':
+      return this->move_actor(player, 0, 1);
+      break;
+    case 'L':
+      this->auto_type = AUTO_L;
       return this->move_actor(player, 0, 1);
       break;
     case 'y':
       return this->move_actor(player, -1, -1);
       break;
+    case 'Y':
+      this->auto_type = AUTO_Y;
+      return this->move_actor(player, -1, -1);
+      break;
     case 'u':
+      return this->move_actor(player, -1, 1);
+      break;
+    case 'U':
+      this->auto_type = AUTO_U;
       return this->move_actor(player, -1, 1);
       break;
     case 'b':
       return this->move_actor(player, 1, -1);
       break;
+    case 'B':
+      this->auto_type = AUTO_B;
+      return this->move_actor(player, 1, -1);
+      break;
     case 'n':
+      return this->move_actor(player, 1, 1);
+      break;
+    case 'N':
+      this->auto_type = AUTO_N;
       return this->move_actor(player, 1, 1);
       break;
     case '.':

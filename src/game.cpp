@@ -17,6 +17,33 @@ Game::Game(Flags flags) {
   this->actors = vector<Actor>();
   this->actors.push_back(Player(0, 0, flags.pname));
   this->generate_level(1);
+  this->auto_type = AUTO_NONE;
+}
+
+string Game::get_auto_str() {
+  switch (this->auto_type) {
+    case AUTO_NONE:
+      return "NONE";
+    case AUTO_H: 
+      return "LEFT";
+    case AUTO_J: 
+      return "DOWN";
+    case AUTO_K: 
+      return "UP";
+    case AUTO_L: 
+      return "RIGHT";
+    case AUTO_Y: 
+      return "UPLEFT";
+    case AUTO_U: 
+      return "UPRIGHT";
+    case AUTO_B: 
+      return "DOWNLEFT";
+    case AUTO_N: 
+      return "DOWNRIGHT";
+    default:
+      return "NONE";
+      break;
+  }
 }
 
 // Returns true if the actor leveled up:

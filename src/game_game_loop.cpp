@@ -49,6 +49,7 @@ void Game::game_loop() {
       this->dijkstra_map_distance(coord);
       this->calculate_fov();
     }
+    this->auto_check(turn_taken);
     
     // About 30 FPS
     std::this_thread::sleep_for(33ms);
