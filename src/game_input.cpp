@@ -147,6 +147,7 @@ bool Game::handle_input() {
           this->log.push_back(victory);
           this->display_game_over(true);
         } else {
+          this->award_xp_to(DESCEND_XP, player);
           this->level++;
           this->generate_level(this->level);
         }

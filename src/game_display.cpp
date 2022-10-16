@@ -41,7 +41,7 @@ void Game::display_title_screen() {
   getmaxyx(stdscr, max_y, max_x);
   erase();
   string title = "DUNGEON UNDER GRINDSTONE";
-  string version = "< version 0.0.4 >";
+  string version = "< version 0.0.5 >";
   string prompt = "...any key to continue...";
   mvaddstr(max_y / 2 - 2, max_x / 2 - (int) title.size() / 2, title.c_str());
   mvaddstr(max_y / 2, max_x / 2 - (int) version.size() / 2, version.c_str());

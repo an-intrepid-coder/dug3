@@ -27,5 +27,7 @@
 
 #define EXTRA_DMG_POTION_AMT 4
 
+#define DESCEND_XP 50
+
 #endif
 
