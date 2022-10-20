@@ -46,7 +46,7 @@ void Game::game_loop() {
       this->bonus_check();
       this->turn++;
       Coord coord = Coord{player->get_y(), player->get_x()};
-      this->dijkstra_map_distance(coord);
+      this->dijkstra_map_player(coord);
       this->calculate_fov();
     }
     this->auto_check(turn_taken);

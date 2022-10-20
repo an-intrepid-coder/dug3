@@ -6,7 +6,7 @@ void Game::generate_level(int level) { // TODO: More args
 
   // Dungeon map setup:
   this->terrain_map_generated = false;
-  this->distance_map = vector<vector<int>>();
+  this->distance_map_player = vector<vector<int>>();
   this->displaying_distance_map = false;
 
   this->generate_map_room_accretion();
@@ -126,7 +126,7 @@ void Game::generate_level(int level) { // TODO: More args
   this->level_exit = exit_spawn[j];
 
   // Finalize map setup:
-  this->dijkstra_map_distance(spawn);
+  this->dijkstra_map_player(spawn);
   this->calculate_fov();
 
 }

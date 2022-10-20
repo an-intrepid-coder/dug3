@@ -1,5 +1,11 @@
 Stuff to do (in no particular order):
 ~-~~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+- full auto-explore
+
+- AI for the player (for auto-testing and observation).
+
+- Automatic testing in general.
+
 - More AI types.
   * SENTRY: Like WAITING_HUNTER, but always returns to its spawn point
             as soon as it loses sight of the player.
@@ -7,12 +13,6 @@ Stuff to do (in no particular order):
             chases player.
   ^-- Both of the above require implementing a path memory property for
       Actors.
-
-- Shift-move and auto-explore
-
-- AI for the player for automated playtesting (w/ stats).
-
-- Automatic testing in general.
 
 - Makefiles in order to speed up recompilation.
 

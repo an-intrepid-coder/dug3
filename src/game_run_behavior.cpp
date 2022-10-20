@@ -32,7 +32,7 @@ void Game::run_behavior() {
           int dx = pcoord.x - coord.x;
           this->move_actor(actor, dy, dx);
         } else {
-          Coord dest = this->downhill_from(coord);
+          Coord dest = this->downhill_to_player(coord);
           int dy = dest.y - coord.y;
           int dx = dest.x - coord.x;
           this->move_actor(actor, dy, dx);
@@ -45,7 +45,7 @@ void Game::run_behavior() {
             this->move_actor(actor, dy, dx);
           } else {
             Coord coord = Coord{actor->get_y(), actor->get_x()};
-            Coord dest = this->downhill_from(coord);
+            Coord dest = this->downhill_to_player(coord);
             int dy = dest.y - coord.y;
             int dx = dest.x - coord.x;
             this->move_actor(actor, dy, dx);

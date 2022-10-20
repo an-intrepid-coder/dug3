@@ -52,7 +52,7 @@ class Game {
     vector<vector<Visibility>> fov_map;
     bool distance_map_generated;
     bool displaying_distance_map;
-    vector<vector<int>> distance_map;
+    vector<vector<int>> distance_map_player;
     
     void display_title_screen();
     void display_game_over(bool victory);
@@ -81,8 +81,8 @@ class Game {
     Coord get_spawn_loc();
     void run_behavior();
     Actor* get_player();
-    void dijkstra_map_distance(Coord start);
-    Coord downhill_from(Coord coord);
+    void dijkstra_map_player(Coord start);
+    Coord downhill_to_player(Coord coord);
     bool can_see(Actor* viewer, Coord goal);
     void calculate_fov();
     bool use_consumable(Consumable* item, Actor* user);

@@ -46,7 +46,7 @@ bool Game::handle_input() {
       input = getch();
       break;
     case AUTO_H:
-      input = 'h'; // TODO: Test this line
+      input = 'h'; 
       break;
     case AUTO_J:
       input = 'j';
@@ -69,6 +69,7 @@ bool Game::handle_input() {
     case AUTO_N:
       input = 'n';
       break;
+    // TODO: Auto-explore!
     default:
       break;
   }
@@ -156,7 +157,7 @@ bool Game::handle_input() {
     case 'D':
       // Overlay Djikstra distance: (Debug cmd!)
       if (this->flags.debug) {
-        this->dijkstra_map_distance(Coord{player->get_y(), player->get_x()});
+        this->dijkstra_map_player(Coord{player->get_y(), player->get_x()});
         this->toggle_displaying_distance_map();
       }
       break;

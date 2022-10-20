@@ -91,7 +91,7 @@ void Game::display_scene() {
             break;
           case FLOOR:
             if (this->displaying_distance_map) { 
-              char d = (char) ('a' + this->distance_map[y][x]);
+              char d = (char) ('a' + this->distance_map_player[y][x]);
               mvaddch(y, x, d);
             } else if (y == this->level_exit.y && x == this->level_exit.x) {
               if (this->level == FINAL_DLVL) {
